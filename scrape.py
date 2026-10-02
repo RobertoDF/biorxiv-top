@@ -56,7 +56,8 @@ def list_papers(start, end, category):
 
 def usage(doi):
     """{"YYYY-MM": [full, pdf]}, None if the page has no usage table, or False if the fetch failed."""
-    h = fetch(f"https://www.biorxiv.org/content/{doi}v1.article-metrics", retries=2)
+    # The plain URL serves a stale cached page; a unique query string returns live counts.
+    h = fetch(f"https://www.biorxiv.org/content/{doi}v1.article-metrics?_={int(time.time())}", retries=2)
     if h is None:
         return False
     i = h.find("Article usage")
