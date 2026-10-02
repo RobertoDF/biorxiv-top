@@ -130,7 +130,7 @@ def _(MIN_DAYS, dt, month_end, month_list, papers, statistics, today):
             "until": str(last),
             "days": (last - first).days + 1,
             "n_ranked": len(rows),
-            "n_new": sum(1 for p in papers if first <= dt.date.fromisoformat(p["date"]) <= last),
+            "n_new": sum(1 for r in rows if first <= dt.date.fromisoformat(r["date"]) <= last),  # ranked & posted in it
             "reads": sum(r["total"] for r in rows),
             "results": rows,
         }

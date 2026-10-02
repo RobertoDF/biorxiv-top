@@ -180,7 +180,7 @@
         const top = m.results[0];
         const items = [
           [fmt.format(m.n_ranked), `preprints ranked (≥ ${data.min_days} days online)`],
-          [fmt.format(m.n_new), "new preprints posted in this period"],
+          [fmt.format(m.n_new), "of them posted in this period"],
           [rate(m.median_per_day), "median reads/day"],
           [top ? rate(top.per_day) : "–", "reads/day for #1"],
         ];
