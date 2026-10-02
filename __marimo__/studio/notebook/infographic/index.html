@@ -21,13 +21,13 @@
       .eyebrow { font-size: .72rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
       h1 { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: clamp(2rem, 4.6vw, 3.4rem); line-height: 1.05; margin: .4rem 0 .8rem; letter-spacing: -.01em; }
       .lede { max-width: 62ch; color: var(--muted); margin: 0; }
-      .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin: 2.2rem 0 2.5rem; }
+      .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin: 1.4rem 0 2rem; }
       .kpi { background: var(--paper); padding: 1rem 1.1rem; }
       .kpi b { display: block; font-family: Fraunces, Georgia, serif; font-size: 2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
       .kpi span { color: var(--muted); font-size: .82rem; }
       .months { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
       .months button { font: inherit; font-size: .9rem; border: 1px solid var(--rule); background: transparent; color: var(--ink); padding: .45rem .9rem; border-radius: 999px; cursor: pointer; }
-      .modes { display: inline-flex; border: 1px solid var(--ink); border-radius: 999px; padding: 3px; margin-bottom: .9rem; }
+      .modes { display: inline-flex; border: 1px solid var(--ink); border-radius: 999px; padding: 3px; margin: 2rem 0 .9rem; }
       .modes button { font: inherit; font-size: .85rem; font-weight: 600; border: 0; background: none; color: var(--ink); padding: .35rem 1rem; border-radius: 999px; cursor: pointer; }
       .modes button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
       .months button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
@@ -94,10 +94,9 @@
           then click a paper to see its rank over time.</p>
       </header>
 
-      <section class="kpis" aria-label="Summary"></section>
-
       <nav class="modes" aria-label="Ranking type"></nav>
       <nav class="months" aria-label="Timeframe or month"></nav>
+      <section class="kpis" aria-label="Summary for the selected period"></section>
 
       <section aria-live="polite">
         <div class="monthhead">
@@ -177,14 +176,13 @@
       const rate = (v) => (v >= 100 ? fmt.format(Math.round(v)) : v.toFixed(1));
       const tfLabel = (t) => (t.all ? "All tracked" : `Since ${short(t.since)}`);
 
-      function renderKpis() {
-        const tf = data.timeframes[0];
-        const top = tf.results[0];
+      function renderKpis(m) {
+        const top = m.results[0];
         const items = [
-          [fmt.format(data.n_papers), `preprints tracked (posted since ${short(data.start)})`],
-          [fmt.format(tf.reads), `full-text + PDF reads since ${short(tf.since)}`],
-          [top ? rate(top.per_day) : "–", `reads/day for the #1 paper since ${short(tf.since)}`],
-          [data.months.length, "months ranked"],
+          [fmt.format(m.n_ranked), `preprints ranked (≥ ${data.min_days} days online)`],
+          [fmt.format(m.n_new), "new preprints posted in this period"],
+          [rate(m.median_per_day), "median reads/day"],
+          [top ? rate(top.per_day) : "–", "reads/day for #1"],
         ];
         $(".kpis").replaceChildren(...items.map(([v, l]) => el("div", { className: "kpi" }, el("b", { textContent: v }), el("span", { textContent: l }))));
       }
@@ -222,9 +220,8 @@
         $("#month-title").textContent = isTf
           ? `${short(m.since)} – ${short(m.until)}`
           : monthName(m.month) + (m.in_progress ? " · in progress" : "");
-        $("#month-sub").textContent =
-          `${fmt.format(m.n_ranked)} preprints with ≥ ${data.min_days} days online ranked · ${fmt.format(m.n_new)} posted in this period · ` +
-          `reads in the period ÷ days online in it`;
+        $("#month-sub").textContent = `Reads in the period ÷ days online in it · ${fmt.format(data.n_papers)} preprints tracked since ${short(data.start)}`;
+        renderKpis(m);
         const max = Math.max(0.01, ...m.results.map((r) => r.per_day));
         $("#rows").replaceChildren(
           ...m.results.map((r, i) => {
@@ -304,7 +301,6 @@
         shell.querySelectorAll('[data-bind="category"]').forEach((n) => (n.textContent = data.category));
         const binds = { min_days: data.min_days, start: data.start, end: data.end, updated: data.updated, coverage: `${fmt.format(data.n_with_metrics)} / ${fmt.format(data.n_papers)}` };
         for (const [k, v] of Object.entries(binds)) shell.querySelectorAll(`[data-bind="${k}"]`).forEach((n) => (n.textContent = v));
-        renderKpis();
         renderTabs();
         renderMonth();
         shell.setAttribute("aria-busy", "false");

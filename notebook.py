@@ -20,10 +20,11 @@ app = marimo.App(width="medium")
 def _():
     import datetime as dt
     import json
+    import statistics
 
     import marimo as mo
 
-    return dt, json, mo
+    return dt, json, mo, statistics
 
 
 @app.cell
@@ -74,7 +75,7 @@ def _(dt, raw):
 
 
 @app.cell
-def _(MIN_DAYS, dt, month_end, month_list, papers, today):
+def _(MIN_DAYS, dt, month_end, month_list, papers, statistics, today):
     def days_online(p, first, last):
         """Days the preprint was online between dates `first` and `last` (inclusive)."""
         return max(0, (min(last, today) - max(dt.date.fromisoformat(p["date"]), first)).days + 1)
@@ -122,7 +123,9 @@ def _(MIN_DAYS, dt, month_end, month_list, papers, today):
                 "history": rank_history[p["doi"]],
             })
         rows.sort(key=lambda r: -r["per_day"])
+        rates = sorted(r["per_day"] for r in rows)
         return {
+            "median_per_day": round(statistics.median(rates), 2) if rates else 0,
             "since": str(first),
             "until": str(last),
             "days": (last - first).days + 1,
