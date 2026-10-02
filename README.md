@@ -1,6 +1,6 @@
 # biorxiv-top
 
-Infographic of the most-read recent bioRxiv **neuroscience** preprints, refreshed daily.
+Infographic of the most-read recent bioRxiv **neuroscience** preprints, refreshed every few hours.
 
 **Site:** https://robertodf.github.io/biorxiv-top/
 
@@ -19,7 +19,7 @@ Only new (v1) preprints posted in the last 6 months are tracked, so older papers
 1. `scrape.py` lists new (v1) preprints from the last 6 months via the [bioRxiv API](https://api.biorxiv.org/). It scrapes each preprint's `.article-metrics` page for monthly usage, making one request per second to stay under bioRxiv's rate limit. Output: `data/usage.json`.
 2. `notebook.py` ([marimo](https://marimo.io)) computes the rankings and rank histories.
 3. The [marimo Studio](https://marimo-team.github.io/marimo-studio/) view `infographic` (`__marimo__/studio/notebook/infographic/`) renders them. It is exported as a static (Prepared, zero-python) site.
-4. `.github/workflows/update.yml` runs all of this daily and deploys to GitHub Pages.
+4. `.github/workflows/update.yml` runs all of this every 3 hours (metrics fetched on 20 parallel runners) and deploys to GitHub Pages.
 
 **Incremental scraping.** bioRxiv throttles GitHub's runners heavily (HTTP 429), so one run can't refresh every paper. `data/usage.json` is kept on the `data` branch. Each run restores it, fetches papers never fetched or with data older than 6 days (`--refresh-days`), and stops after 150 minutes or 5 consecutive throttled requests (honoring Cloudflare's `retry-after`). It then saves the file back. Papers it can't reach keep their last known usage. The site footer shows how many preprints have usage data.
 

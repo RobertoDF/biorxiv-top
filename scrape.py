@@ -100,33 +100,51 @@ def main():
     ap.add_argument("--budget-minutes", type=float, default=0, help="stop fetching after this long (0 = no limit)")
     ap.add_argument("--max-failures", type=int, default=5, help="stop after this many consecutive throttled fetches")
     ap.add_argument("--out", default="data/usage.json")
+    ap.add_argument("--list-only", action="store_true", help="refresh the paper list in --out without fetching metrics")
+    ap.add_argument("--no-list", action="store_true", help="reuse the paper list already in --out")
+    ap.add_argument("--shard", default="0/1", help="i/N: fetch only every N-th stale paper, starting at i")
+    ap.add_argument("--merge", nargs="+", metavar="FILE", help="merge shard outputs into --out, keeping the newest usage per paper")
     a = ap.parse_args()
     t0 = time.time()
+    if a.merge:
+        return merge(a.merge, a.out)
 
     today = dt.date.today()
-    first = month_keys(today, a.months)
-    listed = list_papers(first, today, a.category)
-    log(f"{len(listed)} papers posted {first} -> {today}")
-    if not listed:
-        sys.exit("no papers fetched")
+    if a.no_list:
+        d = json.load(open(a.out))
+        papers = d["papers"]
+        meta = {k: d[k] for k in ("category", "start", "end")}
+    else:
+        first = month_keys(today, a.months)
+        listed = list_papers(first, today, a.category)
+        log(f"{len(listed)} papers posted {first} -> {today}")
+        if not listed:
+            sys.exit("no papers fetched")
 
-    # incremental: keep usage from earlier runs, only for papers still in the window
-    cache = {}
-    if os.path.exists(a.out):
-        cache = {p["doi"]: p for p in json.load(open(a.out))["papers"]}
-    papers = []
-    for doi, p in listed.items():
-        old = cache.get(doi, {})
-        papers.append({
-            "doi": doi, "title": p["title"], "first_author": p["authors"].split(";")[0].strip(), "date": p["date"],
-            "usage": old.get("usage"), "fetched": old.get("fetched"),  # usage: {"YYYY-MM": [full, pdf]} or None
-        })
-    meta = {"category": a.category, "start": str(first), "end": str(today)}
+        # incremental: keep usage from earlier runs, only for papers still in the window
+        cache = {}
+        if os.path.exists(a.out):
+            cache = {p["doi"]: p for p in json.load(open(a.out))["papers"]}
+        papers = []
+        for doi, p in listed.items():
+            old = cache.get(doi, {})
+            papers.append({
+                "doi": doi, "title": p["title"], "first_author": p["authors"].split(";")[0].strip(), "date": p["date"],
+                "usage": old.get("usage"), "fetched": old.get("fetched"),  # usage: {"YYYY-MM": [full, pdf]} or None
+            })
+        meta = {"category": a.category, "start": str(first), "end": str(today)}
+        if a.list_only:
+            save(a.out, {**meta, "updated": now()}, papers)
+            return log(f"wrote {a.out}: {len(papers)} papers listed")
 
     stale = str(today - dt.timedelta(days=a.refresh_days))
     todo = [p for p in papers if not p["fetched"] or p["fetched"] <= stale]
     todo.sort(key=lambda p: (p["fetched"] or "", p["date"]))  # never fetched first, then oldest data
     log(f"{len(papers) - len(todo)} up to date, {len(todo)} to fetch")
+    i, n_shards = map(int, a.shard.split("/"))
+    todo = todo[i::n_shards]
+    if n_shards > 1:
+        log(f"shard {a.shard}: {len(todo)} papers")
     if a.limit:  # evenly spaced sample across the window
         todo = todo[:: max(1, len(todo) // a.limit)][: a.limit]
 
@@ -154,6 +172,21 @@ def main():
     fresh = sum(1 for p in papers if p["fetched"])
     log(f"wrote {a.out}: fetched {done} this run; {fresh}/{len(papers)} have usage data, "
         f"{sum(1 for p in papers if p['usage'])} with metrics")
+
+
+def merge(files, out):
+    """Combine shard outputs: same paper list, keep each paper's most recently fetched usage."""
+    docs = [json.load(open(f)) for f in files]
+    best = {}
+    for d in docs:
+        for p in d["papers"]:
+            cur = best.get(p["doi"])
+            if cur is None or (p["fetched"] or "") > (cur["fetched"] or ""):
+                best[p["doi"]] = p
+    base = docs[0]
+    papers = [best[p["doi"]] for p in base["papers"]]
+    save(out, {k: base[k] for k in ("category", "start", "end")} | {"updated": now()}, papers)
+    log(f"merged {len(files)} files into {out}: {sum(1 for p in papers if p['fetched'])}/{len(papers)} have usage data")
 
 
 def now():
