@@ -2,13 +2,13 @@ name: Update and deploy
 
 on:
   schedule:
-    - cron: "0 3 * * 1" # Mondays 03:00 UTC
+    - cron: "0 3 * * *" # daily 03:00 UTC; each run fetches what bioRxiv allows and keeps the rest from earlier runs
   workflow_dispatch:
   push:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write # push data/usage.json to the `data` branch
   pages: write
   id-token: write
 
@@ -19,15 +19,29 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 350
+    timeout-minutes: 200
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@v6
-      - name: Scrape bioRxiv usage
-        run: python scrape.py --category neuroscience --months 6 --out data/usage.json
+      - name: Restore usage data from the data branch
+        run: |
+          mkdir -p data
+          if git fetch --depth 1 origin data; then git show FETCH_HEAD:usage.json > data/usage.json; fi
+      - name: Scrape bioRxiv usage (incremental)
+        run: python scrape.py --category neuroscience --months 6 --budget-minutes 150 --out data/usage.json
+      - name: Save usage data to the data branch
+        if: always() && hashFiles('data/usage.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd data
+          git init -q -b data
+          git add usage.json
+          git -c user.name="github-actions[bot]" -c user.email="41898283+github-actions[bot]@users.noreply.github.com" commit -qm "Update usage data"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" data
       - name: Export marimo Studio infographic
         run: uvx --with marimo-studio==0.2.3 marimo-studio view export infographic --target notebook.py --runtime zero-python --output site
       - uses: actions/upload-pages-artifact@v3
