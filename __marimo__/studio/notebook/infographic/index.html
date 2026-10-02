@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Most-read bioRxiv neuroscience preprints</title>
+    <title>Top neuroscience preprints · bioRxiv</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -27,7 +27,7 @@
       .kpi span { color: var(--muted); font-size: .82rem; }
       .months { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
       .months button { font: inherit; font-size: .9rem; border: 1px solid var(--rule); background: transparent; color: var(--ink); padding: .45rem .9rem; border-radius: 999px; cursor: pointer; }
-      .modes { display: inline-flex; border: 1px solid var(--ink); border-radius: 999px; padding: 3px; margin: 2rem 0 .9rem; }
+      .modes { display: inline-flex; border: 1px solid var(--ink); border-radius: 999px; padding: 3px; margin: 1.4rem 0 .9rem; }
       .modes button { font: inherit; font-size: .85rem; font-weight: 600; border: 0; background: none; color: var(--ink); padding: .35rem 1rem; border-radius: 999px; cursor: pointer; }
       .modes button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
       .months button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
@@ -67,6 +67,7 @@
       aside th, aside td { padding: .4rem .3rem; border-bottom: 1px solid var(--rule); text-align: right; }
       aside th:first-child, aside td:first-child { text-align: left; }
       aside th { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 500; }
+      footer .method { font-size: .92rem; color: var(--ink); border-top: 1px solid var(--rule); padding-top: 1.2rem; margin-bottom: 1rem; }
       footer { margin-top: 3rem; color: var(--muted); font-size: .82rem; max-width: 75ch; }
       footer a { color: inherit; }
       @media (max-width: 760px) {
@@ -85,13 +86,8 @@
       <span id="infographic-data" hidden mo-value="infographic"></span>
 
       <header>
-        <div class="eyebrow">bioRxiv · <span data-bind="category"></span> · readership</div>
-        <h1>Which neuroscience preprints are people reading?</h1>
-        <p class="lede">Preprints ranked by <b>reads per day</b>: full-text views + PDF downloads in the period (abstract views
-          are left out) ÷ days the preprint was online in it, across every tracked preprint, whenever it was posted.
-          A preprint needs at least <span data-bind="min_days"></span> days online in the period to be ranked. bioRxiv reports usage per
-          calendar month, so periods are whole months, and the current month counts up to the latest data. Pick a timeframe or a single month,
-          then click a paper to see its rank over time.</p>
+        <div class="eyebrow">bioRxiv · <span data-bind="category"></span></div>
+        <h1>Top neuroscience preprints</h1>
       </header>
 
       <nav class="modes" aria-label="Ranking type"></nav>
@@ -123,6 +119,10 @@
       </aside>
 
       <footer>
+        <p class="method">Preprints ranked by <b>reads per day</b>: full-text views + PDF downloads in the period (abstract views
+          are left out) ÷ days the preprint was online in it, across every tracked preprint, whenever it was posted.
+          A preprint needs at least <span data-bind="min_days"></span> days online in the period to be ranked. bioRxiv reports usage per
+          calendar month, so periods are whole months, and the current month counts up to the latest data. Click a paper to see its rank over time.</p>
         <p>Data: the <a href="https://api.biorxiv.org/">bioRxiv API</a> plus each preprint's public article-metrics page. Tracks new (v1) preprints posted
           <span data-bind="start"></span> to <span data-bind="end"></span>. Metrics were retrieved for
           <span data-bind="coverage"></span> of them. Updated <span data-bind="updated"></span>, and refreshed daily.
