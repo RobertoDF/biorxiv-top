@@ -1,16 +1,18 @@
 # biorxiv-top
 
-Infographic of the most-read new bioRxiv **neuroscience** preprints, refreshed weekly.
+Infographic of the most-read recent bioRxiv **neuroscience** preprints, refreshed weekly.
 
 **Site:** https://robertodf.github.io/biorxiv-top/
 
 ## Metric
 
-**Reads per day.** Reads are full-text views + PDF downloads; abstract views are ignored. A paper needs at least 15 days of data to be ranked.
+**Reads during the period.** Reads are full-text views + PDF downloads; abstract views are ignored. Every tracked preprint counts, whenever it was posted. bioRxiv reports usage per calendar month, so periods are whole months, and the current month counts up to the latest data.
 
-- **Last N days** (default; N = 30/60/90/180): preprints posted in the window, ranked by all of their reads so far ÷ days since posting.
-- **By month:** preprints posted in that month, ranked by that month's reads ÷ *eligible days* (the days the preprint was online during the month).
-- **Rank history** (click a paper): its rank in each month among *all* tracked preprints, using that month's reads ÷ days online that month.
+- **Timeframe** (default): reads since the 1st of the month 1, 2 or 3 months ago, or over the whole tracked period.
+- **By month:** reads in a single month.
+- **Rank history** (click a paper): its rank in each month among all tracked preprints, by that month's reads.
+
+Only new (v1) preprints posted in the last 6 months are tracked, so older papers are not ranked.
 
 ## How it works
 

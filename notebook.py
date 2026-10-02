@@ -30,17 +30,18 @@ def _():
 def _(mo):
     mo.md(
         """
-    # Most-read bioRxiv preprints by month
+    # Most-read bioRxiv preprints
 
-    Only papers with at least **15 days of data** are ranked (in a month: at least 15 days online that month).
-    The metric is **reads per day**, where reads = full-text views + PDF downloads (abstract views are ignored).
+    The metric is **reads during a period**: full-text views + PDF downloads (abstract views are ignored),
+    counted over **all** tracked preprints, whatever their posting date. bioRxiv reports usage per calendar
+    month, so periods are whole months (the current month counts up to the data date).
 
-    * **Timeframe ranking (default):** preprints posted in the last *N* days, ranked by
-      all of their reads so far ÷ days since posting.
-    * **Monthly ranking:** preprints posted in a month, ranked by that month's reads ÷
-      *eligible days* (days the preprint was online during that month).
-    * **Rank history:** a paper's rank in each month among **all** tracked preprints
-      (including papers posted in earlier months), by that month's reads ÷ days online in that month.
+    * **Timeframe ranking (default):** reads since the 1st of the month 1, 2 or 3 months ago, or over the
+      whole tracked period.
+    * **Monthly ranking:** reads in a single month.
+    * **Rank history:** a paper's rank in each month among all tracked preprints, by that month's reads.
+
+    Tracked preprints are new (v1) preprints posted since the scrape start date.
     """
     )
     return
@@ -49,11 +50,10 @@ def _(mo):
 @app.cell
 def _(json, mo):
     TOP_N = 50
-    TIMEFRAMES = [30, 60, 90, 180]
-    MIN_DAYS = 15  # a paper needs at least this many days of data to be ranked
+    TIMEFRAMES = [1, 2, 3]  # complete months back, plus the whole tracked period
     raw = json.loads((mo.notebook_dir() / "data" / "usage.json").read_text())
     papers = [p for p in raw["papers"] if p["usage"]]
-    return MIN_DAYS, TIMEFRAMES, TOP_N, papers, raw
+    return TIMEFRAMES, TOP_N, papers, raw
 
 
 @app.cell
@@ -72,40 +72,31 @@ def _(dt, raw):
 
 
 @app.cell
-def _(MIN_DAYS, dt, month_end, month_list, papers, today):
-    def days_online(p, ym):
-        """Days the preprint was online during month `ym` (up to the data date)."""
-        start = max(dt.date.fromisoformat(p["date"]), dt.date.fromisoformat(ym + "-01"))
-        return (min(month_end(ym), today) - start).days + 1
+def _(dt, month_end, month_list, papers, today):
+    def days_online(p, first, last):
+        """Days the preprint was online between dates `first` and `last` (inclusive)."""
+        return max(0, (min(last, today) - max(dt.date.fromisoformat(p["date"]), first)).days + 1)
 
-    # rank among all tracked preprints, per month, by that month's (full + PDF) / days online
+    def reads(p, months):
+        full = sum(p["usage"].get(m, (0, 0))[0] for m in months)
+        pdf = sum(p["usage"].get(m, (0, 0))[1] for m in months)
+        return full, pdf
+
+    # rank among all tracked preprints, per month, by that month's full + PDF reads
     rank_history = {p["doi"]: [] for p in papers}
     for _ym in month_list:
-        _rows = sorted(
-            (
-                (sum(p["usage"][_ym]) / days_online(p, _ym), sum(p["usage"][_ym]), p["doi"])
-                for p in papers
-                if _ym in p["usage"] and days_online(p, _ym) >= MIN_DAYS
-            ),
-            reverse=True,
-        )
-        for _rank, (_rate, _reads, _doi) in enumerate(_rows, 1):
-            rank_history[_doi].append(
-                {"month": _ym, "rank": _rank, "of": len(_rows), "reads": _reads, "per_day": round(_rate, 2)}
-            )
-    return days_online, rank_history
+        _rows = sorted(((sum(p["usage"][_ym]), p["doi"]) for p in papers if _ym in p["usage"]), reverse=True)
+        for _rank, (_reads, _doi) in enumerate(_rows, 1):
+            rank_history[_doi].append({"month": _ym, "rank": _rank, "of": len(_rows), "reads": _reads})
 
-
-@app.cell
-def _(MIN_DAYS, TOP_N, days_online, month_end, month_list, papers, rank_history, raw, today):
-    def rank_month(ym):
+    def rank_period(months):
+        """All tracked preprints ranked by full + PDF reads summed over `months`."""
+        first = dt.date.fromisoformat(months[0] + "-01")
+        last = min(month_end(months[-1]), today)
         rows = []
         for p in papers:
-            if not p["date"].startswith(ym) or ym not in p["usage"]:
-                continue
-            full, pdf = p["usage"][ym]
-            eligible = days_online(p, ym)
-            if eligible < MIN_DAYS:
+            full, pdf = reads(p, months)
+            if full + pdf == 0:
                 continue
             rows.append({
                 "doi": p["doi"],
@@ -115,69 +106,49 @@ def _(MIN_DAYS, TOP_N, days_online, month_end, month_list, papers, rank_history,
                 "full": full,
                 "pdf": pdf,
                 "total": full + pdf,
-                "eligible_days": eligible,
-                "per_day": round((full + pdf) / eligible, 2),
+                "days": days_online(p, first, last),
                 "history": rank_history[p["doi"]],
             })
-        rows.sort(key=lambda r: -r["per_day"])
+        rows.sort(key=lambda r: -r["total"])
         return {
-            "month": ym,
-            "in_progress": month_end(ym) > today,
-            "days_in_month": month_end(ym).day,
-            "n_posted": sum(1 for p in raw["papers"] if p["date"].startswith(ym)),
+            "since": str(first),
+            "until": str(last),
+            "days": (last - first).days + 1,
             "n_ranked": len(rows),
+            "n_new": sum(1 for p in papers if first <= dt.date.fromisoformat(p["date"]) <= last),
             "reads": sum(r["total"] for r in rows),
-            "results": rows[:TOP_N],
+            "results": rows,
         }
 
-    monthly_rankings = [_m for _m in (rank_month(_ym) for _ym in reversed(month_list)) if _m["results"]]
+    return (rank_period,)
+
+
+@app.cell
+def _(TOP_N, month_end, month_list, rank_period, today):
+    def _month(ym):
+        block = rank_period([ym])
+        return {**block, "month": ym, "in_progress": month_end(ym) > today, "results": block["results"][:TOP_N]}
+
+    monthly_rankings = [_m for _m in (_month(_ym) for _ym in reversed(month_list)) if _m["results"]]
     return (monthly_rankings,)
 
 
 @app.cell
-def _(MIN_DAYS, TIMEFRAMES, TOP_N, dt, papers, rank_history, raw, today):
-    def rank_timeframe(days):
-        """Preprints posted in the last `days` days, ranked by all reads so far / days since posting."""
-        since = today - dt.timedelta(days=days - 1)
-        rows = []
-        for p in papers:
-            posted = dt.date.fromisoformat(p["date"])
-            if posted < since:
-                continue
-            age = (today - posted).days + 1
-            if age < MIN_DAYS:
-                continue
-            full = sum(v[0] for v in p["usage"].values())
-            pdf = sum(v[1] for v in p["usage"].values())
-            rows.append({
-                "doi": p["doi"],
-                "title": p["title"],
-                "first_author": p["first_author"],
-                "date": p["date"],
-                "full": full,
-                "pdf": pdf,
-                "total": full + pdf,
-                "days": age,
-                "per_day": round((full + pdf) / age, 2),
-                "history": rank_history[p["doi"]],
-            })
-        rows.sort(key=lambda r: -r["per_day"])
-        return {
-            "days": days,
-            "since": str(since),
-            "n_posted": sum(1 for p in raw["papers"] if dt.date.fromisoformat(p["date"]) >= since),
-            "n_ranked": len(rows),
-            "results": rows[:TOP_N],
-        }
-
-    timeframe_rankings = [rank_timeframe(_d) for _d in TIMEFRAMES]
+def _(TIMEFRAMES, TOP_N, month_list, rank_period):
+    # windows start on the 1st of the month N complete months back and run to the data date
+    _starts = sorted({max(0, len(month_list) - 1 - _n) for _n in TIMEFRAMES} | {0}, reverse=True)
+    timeframe_rankings = []
+    for _i in _starts:
+        _block = rank_period(month_list[_i:])
+        _block["all"] = _i == 0
+        _block["results"] = _block["results"][:TOP_N]
+        timeframe_rankings.append(_block)
     return (timeframe_rankings,)
 
 
 @app.cell
-def _(MIN_DAYS, monthly_rankings, papers, raw, timeframe_rankings):
+def _(monthly_rankings, papers, raw, timeframe_rankings):
     infographic = {
-        "min_days": MIN_DAYS,
         "category": raw["category"],
         "updated": raw["updated"],
         "start": raw["start"],
@@ -195,7 +166,7 @@ def _(mo, monthly_rankings):
     mo.ui.tabs({
         m["month"]: mo.ui.table(
             [
-                {k: r[k] for k in ("per_day", "total", "full", "pdf", "eligible_days", "date", "title", "first_author")}
+                {k: r[k] for k in ("total", "full", "pdf", "days", "date", "title", "first_author")}
                 for r in m["results"]
             ],
             selection=None,

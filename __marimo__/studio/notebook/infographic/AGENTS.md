@@ -7,15 +7,14 @@ supplied by this starter.
 ## Project intent
 
 Public infographic (GitHub Pages, Prepared/zero-python export) ranking the most-read new bioRxiv
-neuroscience preprints per month. Data comes from the notebook value `infographic`; all
+neuroscience preprints by reads in a period. Data comes from the notebook value `infographic`; all
 interaction (month tabs, rank-history side panel) is browser-only on that projected value.
 
-- Ranking metric everywhere: reads per day, reads = full-text views + PDF downloads (abstract views excluded).
-- Papers need >= 15 days of data (MIN_DAYS in notebook) to be ranked.
-- Default mode "Last N days" (30/60/90/180): papers posted in the window, all reads so far / days since posting.
-- "By month" mode: papers posted that month, that month's reads / eligible days (days online within the month);
-  show eligible days for each paper.
-- Clicking a paper shows its monthly rank among all tracked preprints by per-day rate (log-scale chart + table).
+- Ranking metric everywhere: full-text views + PDF downloads during the period (abstract views excluded),
+  over all tracked preprints regardless of posting date. Periods are whole calendar months (bioRxiv usage is monthly).
+- Default mode "Timeframe": since the 1st of the month 1/2/3 months back, plus all tracked months.
+- "By month" mode: that month's reads. Rows show days online within the period.
+- Clicking a paper shows its monthly rank among all tracked preprints by that month's reads (log-scale chart + table).
 - Aesthetic: editorial, warm paper background, Fraunces headings + Inter body, bioRxiv red accent,
   dark-mode aware. No UnoCSS/Iconify; styles are authored inline.
 
