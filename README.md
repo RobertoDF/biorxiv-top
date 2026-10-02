@@ -6,7 +6,7 @@ Infographic of the most-read new bioRxiv **neuroscience** preprints, refreshed w
 
 ## Metric
 
-**Reads per day.** Reads are full-text views + PDF downloads; abstract views are ignored. A paper needs at least 10 days of data to be ranked.
+**Reads per day.** Reads are full-text views + PDF downloads; abstract views are ignored. A paper needs at least 15 days of data to be ranked.
 
 - **Last N days** (default; N = 30/60/90/180): preprints posted in the window, ranked by all of their reads so far ÷ days since posting.
 - **By month:** preprints posted in that month, ranked by that month's reads ÷ *eligible days* (the days the preprint was online during the month).

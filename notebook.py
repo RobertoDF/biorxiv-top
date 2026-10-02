@@ -32,7 +32,7 @@ def _(mo):
         """
     # Most-read bioRxiv preprints by month
 
-    Only papers with at least **10 days of data** are ranked (in a month: at least 10 days online that month).
+    Only papers with at least **15 days of data** are ranked (in a month: at least 15 days online that month).
     The metric is **reads per day**, where reads = full-text views + PDF downloads (abstract views are ignored).
 
     * **Timeframe ranking (default):** preprints posted in the last *N* days, ranked by
@@ -50,7 +50,7 @@ def _(mo):
 def _(json, mo):
     TOP_N = 50
     TIMEFRAMES = [30, 60, 90, 180]
-    MIN_DAYS = 10  # a paper needs at least this many days of data to be ranked
+    MIN_DAYS = 15  # a paper needs at least this many days of data to be ranked
     raw = json.loads((mo.notebook_dir() / "data" / "usage.json").read_text())
     papers = [p for p in raw["papers"] if p["usage"]]
     return MIN_DAYS, TIMEFRAMES, TOP_N, papers, raw

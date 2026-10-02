@@ -11,7 +11,7 @@ neuroscience preprints per month. Data comes from the notebook value `infographi
 interaction (month tabs, rank-history side panel) is browser-only on that projected value.
 
 - Ranking metric everywhere: reads per day, reads = full-text views + PDF downloads (abstract views excluded).
-- Papers need >= 10 days of data (MIN_DAYS in notebook) to be ranked.
+- Papers need >= 15 days of data (MIN_DAYS in notebook) to be ranked.
 - Default mode "Last N days" (30/60/90/180): papers posted in the window, all reads so far / days since posting.
 - "By month" mode: papers posted that month, that month's reads / eligible days (days online within the month);
   show eligible days for each paper.
