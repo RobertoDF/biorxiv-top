@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Most-read bioRxiv neuroscience preprints, by month</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --paper: #f7f4ee; --ink: #1d1b19; --muted: #6f6a63; --rule: #e3ddd2;
+        --full: #b31b1b; --pdf: #e8a598; --card: #fffdf9; --accent: #b31b1b;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root { --paper: #141312; --ink: #ece7df; --muted: #9a948b; --rule: #2b2926; --card: #1c1a18; --full: #ef5b5b; --pdf: #7a3b36; --accent: #ef5b5b; }
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 Inter, system-ui, sans-serif; }
+      #app-shell { max-width: 1180px; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
+      .eyebrow { font-size: .72rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+      h1 { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: clamp(2rem, 4.6vw, 3.4rem); line-height: 1.05; margin: .4rem 0 .8rem; letter-spacing: -.01em; }
+      .lede { max-width: 62ch; color: var(--muted); margin: 0; }
+      .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin: 2.2rem 0 2.5rem; }
+      .kpi { background: var(--paper); padding: 1rem 1.1rem; }
+      .kpi b { display: block; font-family: Fraunces, Georgia, serif; font-size: 2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+      .kpi span { color: var(--muted); font-size: .82rem; }
+      .months { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+      .months button { font: inherit; font-size: .9rem; border: 1px solid var(--rule); background: transparent; color: var(--ink); padding: .45rem .9rem; border-radius: 999px; cursor: pointer; }
+      .modes { display: inline-flex; border: 1px solid var(--ink); border-radius: 999px; padding: 3px; margin-bottom: .9rem; }
+      .modes button { font: inherit; font-size: .85rem; font-weight: 600; border: 0; background: none; color: var(--ink); padding: .35rem 1rem; border-radius: 999px; cursor: pointer; }
+      .modes button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+      .months button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+      .months button small { opacity: .65; margin-left: .3rem; }
+      .monthhead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .5rem 1.5rem; border-bottom: 2px solid var(--ink); padding-bottom: .6rem; }
+      .monthhead h2 { font-family: Fraunces, Georgia, serif; font-size: 1.7rem; margin: 0; }
+      .monthhead p { margin: 0; color: var(--muted); font-size: .88rem; }
+      .legend { display: flex; gap: 1rem; font-size: .8rem; color: var(--muted); align-items: center; }
+      .sw { display: inline-block; width: .8rem; height: .8rem; border-radius: 2px; vertical-align: -1px; margin-right: .3rem; }
+      .head, .row { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr) minmax(140px, 30%) 4.6rem 5.2rem; gap: 1rem; align-items: center; }
+      .head { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: .7rem .5rem; border-bottom: 1px solid var(--rule); }
+      .head .r, .row .r { text-align: right; }
+      .row { width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; border-bottom: 1px solid var(--rule); padding: .75rem .5rem; cursor: pointer; }
+      .row:hover, .row[aria-expanded="true"] { background: var(--card); }
+      .row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+      .rank { font-family: Fraunces, Georgia, serif; font-size: 1.35rem; color: var(--muted); }
+      .row:nth-child(-n+4) .rank { color: var(--accent); }
+      .title { font-weight: 500; line-height: 1.3; }
+      .meta { color: var(--muted); font-size: .8rem; margin-top: .15rem; }
+      .bar { display: flex; height: 14px; border-radius: 2px; overflow: hidden; background: color-mix(in srgb, var(--rule) 60%, transparent); }
+      .bar i { display: block; height: 100%; }
+      .bar .f { background: var(--full); } .bar .p { background: var(--pdf); }
+      .barnums { font-size: .72rem; color: var(--muted); margin-top: .25rem; font-variant-numeric: tabular-nums; }
+      .total small { display: block; font-family: Inter, sans-serif; font-size: .68rem; color: var(--muted); }
+      .total { font-family: Fraunces, Georgia, serif; font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+      .days { font-size: .8rem; font-variant-numeric: tabular-nums; }
+      .gauge { height: 4px; background: var(--rule); border-radius: 2px; margin-top: .3rem; }
+      .gauge i { display: block; height: 100%; background: var(--ink); border-radius: 2px; }
+      aside#detail { position: fixed; top: 0; right: 0; height: 100%; width: min(460px, 100%); background: var(--card); border-left: 1px solid var(--rule); box-shadow: -12px 0 40px #0002; padding: 1.6rem 1.5rem; overflow: auto; transform: translateX(105%); transition: transform .25s ease; z-index: 10; }
+      aside#detail.open { transform: none; }
+      aside h3 { font-family: Fraunces, Georgia, serif; font-size: 1.3rem; line-height: 1.2; margin: .4rem 2rem .3rem 0; }
+      aside .close { position: absolute; top: 1rem; right: 1rem; border: 0; background: none; color: var(--ink); font-size: 1.5rem; cursor: pointer; line-height: 1; }
+      aside a { color: var(--accent); }
+      aside svg { width: 100%; height: auto; margin: 1rem 0 .5rem; overflow: visible; }
+      aside svg text { fill: var(--muted); font-size: 10px; font-family: Inter, sans-serif; }
+      aside table { width: 100%; border-collapse: collapse; font-size: .85rem; font-variant-numeric: tabular-nums; }
+      aside th, aside td { padding: .4rem .3rem; border-bottom: 1px solid var(--rule); text-align: right; }
+      aside th:first-child, aside td:first-child { text-align: left; }
+      aside th { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 500; }
+      footer { margin-top: 3rem; color: var(--muted); font-size: .82rem; max-width: 75ch; }
+      footer a { color: inherit; }
+      @media (max-width: 760px) {
+        .head { display: none; }
+        .row { grid-template-columns: 2rem minmax(0, 1fr) 4rem; }
+        .row .barcell { grid-column: 2 / 4; grid-row: 2; }
+        .row .dayscell { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <main id="app-shell" aria-busy="true"
+      data-marimo-lens-inputs="infographic-data"
+      data-marimo-lens-label="Monthly bioRxiv reading ranking"
+      data-marimo-lens-render-source='{"path":"index.html"}'>
+      <span id="infographic-data" hidden mo-value="infographic"></span>
+
+      <header>
+        <div class="eyebrow">bioRxiv · <span data-bind="category"></span> · readership</div>
+        <h1>Which new neuroscience preprints are people reading?</h1>
+        <p class="lede">New preprints ranked by <b>reads per day</b>: full-text views + PDF downloads (abstract views
+          are left out) divided by the days the paper has been online. This puts papers posted yesterday and
+          papers posted months ago on the same footing. A paper needs at least <span data-bind="min_days"></span> days of data to be ranked. Pick a timeframe or a single month, then click a paper to see its rank over time.</p>
+      </header>
+
+      <section class="kpis" aria-label="Summary"></section>
+
+      <nav class="modes" aria-label="Ranking type"></nav>
+      <nav class="months" aria-label="Timeframe or month"></nav>
+
+      <section aria-live="polite">
+        <div class="monthhead">
+          <div><h2 id="month-title"></h2><p id="month-sub"></p></div>
+          <div class="legend">
+            <span><i class="sw" style="background:var(--full)"></i>Full text</span>
+            <span><i class="sw" style="background:var(--pdf)"></i>PDF</span>
+          </div>
+        </div>
+        <div class="head" aria-hidden="true">
+          <span>#</span><span>Preprint</span><span>Full + PDF per day</span><span class="r">Reads/day</span><span class="r" id="days-head">Days online</span>
+        </div>
+        <div id="rows"></div>
+      </section>
+
+      <aside id="detail" aria-label="Rank history" aria-hidden="true">
+        <button class="close" type="button" aria-label="Close rank history">×</button>
+        <div class="eyebrow">Rank over time</div>
+        <h3 id="d-title"></h3>
+        <div class="meta" id="d-meta"></div>
+        <div id="d-chart"></div>
+        <table id="d-table"></table>
+        <p class="meta">Monthly rank among all tracked new <span data-bind="category"></span> preprints by that month's (full-text + PDF reads) ÷ days online that month. Months with fewer than <span data-bind="min_days"></span> days online are skipped. Lower is better.</p>
+      </aside>
+
+      <footer>
+        <p>Data: the <a href="https://api.biorxiv.org/">bioRxiv API</a> plus each preprint's public article-metrics page. Covers new (v1) preprints posted
+          <span data-bind="start"></span> to <span data-bind="end"></span>. Metrics were retrieved for
+          <span data-bind="coverage"></span> of them. Updated <span data-bind="updated"></span>, and refreshed weekly.
+          <a href="https://github.com/RobertoDF/biorxiv-top">Source</a>. Built with <a href="https://marimo-team.github.io/marimo-studio/">marimo Studio</a>.</p>
+      </footer>
+    </main>
+    <script type="module">
+      /** Subscribe an explicit `mo-value` host to current values and later updates. */
+      const observeMarimoValue = (host, { onValue, onError = () => {} }) => {
+        const sync = (event) => onValue(event.detail.value);
+        const fail = (event) => onError(event.detail);
+        host.addEventListener("marimo-value-updated", sync);
+        host.addEventListener("marimo-value-error", fail);
+        if (host.dataset.marimoError !== undefined) {
+          onError({
+            selector: host.getAttribute("mo-value")?.trim() ?? "",
+            code: host.dataset.marimoErrorCode,
+            message: host.dataset.marimoError,
+            hint: host.dataset.marimoDiagnosticHint,
+          });
+        } else if (host.marimoValue !== undefined) {
+          onValue(host.marimoValue);
+        }
+        return () => {
+          host.removeEventListener("marimo-value-updated", sync);
+          host.removeEventListener("marimo-value-error", fail);
+        };
+      };
+
+      const shell = document.querySelector("#app-shell");
+      const $ = (s) => shell.querySelector(s);
+      const fmt = new Intl.NumberFormat("en");
+      const monthName = (ym, style = "long") =>
+        new Date(ym + "-01T00:00").toLocaleString("en", { month: style, year: "numeric" });
+      const el = (tag, props = {}, ...kids) => {
+        const n = Object.assign(document.createElement(tag), props);
+        n.append(...kids.filter((k) => k != null));
+        return n;
+      };
+      const svg = (tag, attrs = {}, text) => {
+        const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+        for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+        if (text != null) n.textContent = text;
+        return n;
+      };
+
+      let data = null;
+      let mode = "timeframe";   // "timeframe" | "month"
+      let current = null;       // selected timeframe (days) or month (YYYY-MM)
+      const rate = (v) => (v >= 100 ? fmt.format(Math.round(v)) : v.toFixed(1));
+
+      function renderKpis() {
+        const tf = data.timeframes[0];
+        const top = tf.results[0];
+        const items = [
+          [fmt.format(data.n_papers), "new preprints tracked"],
+          [fmt.format(tf.n_posted), `posted in the last ${tf.days} days`],
+          [top ? rate(top.per_day) : "–", `reads/day for the top paper of the last ${tf.days} days`],
+          [data.months.length, "months ranked"],
+        ];
+        $(".kpis").replaceChildren(...items.map(([v, l]) => el("div", { className: "kpi" }, el("b", { textContent: v }), el("span", { textContent: l }))));
+      }
+
+      function renderTabs() {
+        $(".modes").replaceChildren(
+          ...[["timeframe", "Last N days"], ["month", "By month"]].map(([k, label]) => {
+            const b = el("button", { type: "button", textContent: label });
+            b.setAttribute("aria-pressed", mode === k);
+            b.onclick = () => {
+              if (mode === k) return;
+              mode = k;
+              current = k === "timeframe" ? data.timeframes[0].days : (data.months.find((m) => !m.in_progress) ?? data.months[0]).month;
+              renderTabs(); renderMonth();
+            };
+            return b;
+          }),
+        );
+        const opts = mode === "timeframe"
+          ? data.timeframes.map((t) => [t.days, `${t.days} days`, null])
+          : data.months.map((m) => [m.month, monthName(m.month, "short"), m.in_progress ? "so far" : null]);
+        $(".months").replaceChildren(
+          ...opts.map(([key, label, note]) => {
+            const b = el("button", { type: "button" }, label, note ? el("small", { textContent: note }) : null);
+            b.setAttribute("aria-pressed", key === current);
+            b.onclick = () => { current = key; renderTabs(); renderMonth(); };
+            return b;
+          }),
+        );
+      }
+
+      function renderMonth() {
+        const isTf = mode === "timeframe";
+        const m = isTf ? data.timeframes.find((x) => x.days === current) : data.months.find((x) => x.month === current);
+        if (isTf) {
+          $("#month-title").textContent = `Last ${m.days} days`;
+          $("#month-sub").textContent =
+            `Posted ${m.since} – ${data.end} · ${fmt.format(m.n_posted)} new preprints · ${fmt.format(m.n_ranked)} with ≥ ${data.min_days} days of data ranked · all reads so far ÷ days since posting`;
+        } else {
+          $("#month-title").textContent = monthName(m.month) + (m.in_progress ? " · in progress" : "");
+          $("#month-sub").textContent =
+            `${fmt.format(m.n_posted)} new preprints posted · ${fmt.format(m.n_ranked)} with ≥ ${data.min_days} eligible days ranked · that month's reads ÷ eligible days`;
+        }
+        $("#days-head").textContent = isTf ? "Days online" : "Eligible days";
+        const denom = (r) => (isTf ? r.days : r.eligible_days);
+        const maxDays = isTf ? m.days : m.days_in_month;
+        const max = Math.max(0.01, ...m.results.map((r) => r.per_day));
+        $("#rows").replaceChildren(
+          ...m.results.map((r, i) => {
+            const row = el("button", { type: "button", className: "row" },
+              el("span", { className: "rank", textContent: i + 1 }),
+              el("span", {},
+                el("div", { className: "title", textContent: r.title }),
+                el("div", { className: "meta", textContent: `${r.first_author} et al. · posted ${r.date}` })),
+              el("span", { className: "barcell" },
+                el("div", { className: "bar", title: `${r.full} full text · ${r.pdf} PDF over ${denom(r)} days` },
+                  el("i", { className: "f", style: `width:${(100 * r.full) / denom(r) / max}%` }),
+                  el("i", { className: "p", style: `width:${(100 * r.pdf) / denom(r) / max}%` })),
+                el("div", { className: "barnums", textContent: `${fmt.format(r.total)} reads: ${fmt.format(r.full)} full + ${fmt.format(r.pdf)} PDF` })),
+              el("span", { className: "r total" }, rate(r.per_day), el("small", { textContent: "reads/day" })),
+              el("span", { className: "r dayscell" },
+                el("div", { className: "days", textContent: isTf ? `${r.days} d` : `${r.eligible_days} / ${m.days_in_month}` }),
+                el("div", { className: "gauge" }, el("i", { style: `width:${Math.min(100, (100 * denom(r)) / maxDays)}%` }))),
+            );
+            row.setAttribute("aria-expanded", "false");
+            row.onclick = () => openDetail(r, row);
+            return row;
+          }),
+        );
+      }
+
+      function historyChart(h) {
+        const W = 400, H = 180, L = 40, R = 14, T = 12, B = 26;
+        const maxRank = Math.max(2, ...h.map((x) => x.of));
+        const x = (i) => (h.length < 2 ? (L + W - R) / 2 : L + (i * (W - L - R)) / (h.length - 1));
+        const y = (r) => T + (Math.log(r) / Math.log(maxRank)) * (H - T - B);
+        const s = svg("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Rank by month, log scale" });
+        for (const t of [1, 3, 10, 30, 100, 300, 1000, 3000].filter((t) => t <= maxRank)) {
+          s.append(svg("line", { x1: L, x2: W - R, y1: y(t), y2: y(t), stroke: "currentColor", "stroke-opacity": 0.12 }));
+          s.append(svg("text", { x: L - 6, y: y(t) + 3, "text-anchor": "end" }, `#${t}`));
+        }
+        s.append(svg("polyline", { fill: "none", stroke: "var(--accent)", "stroke-width": 2.5, "stroke-linejoin": "round",
+          points: h.map((p, i) => `${x(i)},${y(p.rank)}`).join(" ") }));
+        h.forEach((p, i) => {
+          const c = svg("circle", { cx: x(i), cy: y(p.rank), r: 4.5, fill: "var(--card)", stroke: "var(--accent)", "stroke-width": 2 });
+          c.append(svg("title", {}, `${monthName(p.month, "short")}: #${p.rank} of ${p.of}`));
+          s.append(c);
+          s.append(svg("text", { x: x(i), y: y(p.rank) - 9, "text-anchor": "middle", style: "fill:var(--ink);font-weight:600" }, `#${p.rank}`));
+          s.append(svg("text", { x: x(i), y: H - 6, "text-anchor": "middle" }, monthName(p.month, "short")));
+        });
+        return s;
+      }
+
+      function openDetail(r, row) {
+        shell.querySelectorAll('.row[aria-expanded="true"]').forEach((n) => n.setAttribute("aria-expanded", "false"));
+        row.setAttribute("aria-expanded", "true");
+        $("#d-title").replaceChildren(el("a", { href: `https://doi.org/${r.doi}`, target: "_blank", rel: "noopener", textContent: r.title }));
+        $("#d-meta").textContent = `${r.first_author} et al. · posted ${r.date} · ${rate(r.per_day)} reads/day`;
+        $("#d-chart").replaceChildren(historyChart(r.history));
+        $("#d-table").replaceChildren(
+          el("tr", {}, ...["Month", "Rank", "of", "Reads", "Per day"].map((t) => el("th", { textContent: t }))),
+          ...r.history.map((p) => el("tr", {}, ...[monthName(p.month, "short"), `#${p.rank}`, fmt.format(p.of), fmt.format(p.reads), rate(p.per_day)].map((t) => el("td", { textContent: t })))),
+        );
+        const d = $("#detail");
+        d.classList.add("open");
+        d.setAttribute("aria-hidden", "false");
+        d.querySelector(".close").focus();
+      }
+
+      function closeDetail() {
+        const d = $("#detail");
+        d.classList.remove("open");
+        d.setAttribute("aria-hidden", "true");
+        shell.querySelectorAll('.row[aria-expanded="true"]').forEach((n) => n.setAttribute("aria-expanded", "false"));
+      }
+      $("#detail .close").onclick = closeDetail;
+      document.addEventListener("keydown", (e) => e.key === "Escape" && closeDetail());
+
+      function render(value) {
+        data = value;
+        const keys = mode === "timeframe" ? data.timeframes.map((t) => t.days) : data.months.map((m) => m.month);
+        if (!keys.includes(current)) current = keys[0];
+        shell.querySelectorAll('[data-bind="category"]').forEach((n) => (n.textContent = data.category));
+        const binds = { min_days: data.min_days, start: data.start, end: data.end, updated: data.updated, coverage: `${fmt.format(data.n_with_metrics)} / ${fmt.format(data.n_papers)}` };
+        for (const [k, v] of Object.entries(binds)) shell.querySelectorAll(`[data-bind="${k}"]`).forEach((n) => (n.textContent = v));
+        renderKpis();
+        renderTabs();
+        renderMonth();
+        shell.setAttribute("aria-busy", "false");
+      }
+
+      const stop = observeMarimoValue($("#infographic-data"), {
+        onValue: render,
+        onError: (e) => { $("#rows").textContent = `Could not load data: ${e.message}`; shell.setAttribute("aria-busy", "false"); },
+      });
+      window.addEventListener("pagehide", stop, { once: true });
+      shell.setAttribute("data-ready", "");
+    </script>
+  </body>
+</html>

@@ -1,0 +1,133 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.25.0",
+    "script_metadata_hash": "a0e3394aad52d47afe3c0db78c6f7836"
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "e43863d17cd48bbdd4681342f2d791b3",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "ad32600579e6d9e3fe55fd2ab89b9d45",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"most-read-biorxiv-preprints-by-month\">Most-read bioRxiv preprints by month</h1>\n<span class=\"paragraph\">Only papers with at least <strong>10 days of data</strong> are ranked (in a month: at least 10 days online that month).\nThe metric is <strong>reads per day</strong>, where reads = full-text views + PDF downloads (abstract views are ignored).</span>\n<ul>\n<li><strong>Timeframe ranking (default):</strong> preprints posted in the last <em>N</em> days, ranked by\n  all of their reads so far \u00f7 days since posting.</li>\n<li><strong>Monthly ranking:</strong> preprints posted in a month, ranked by that month's reads \u00f7\n  <em>eligible days</em> (days the preprint was online during that month).</li>\n<li><strong>Rank history:</strong> a paper's rank in each month among <strong>all</strong> tracked preprints\n  (including papers posted in earlier months), by that month's reads \u00f7 days online in that month.</li>\n</ul></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "31eb1fe7597d9c41d796811b67a1e4b0",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "ee5bb1c756e6bbe76bb9e6451597db93",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "9821108e4f89c37714eb5c03b1c7bd8f",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "f094a8e8458c5c91fd73a0cd22c728b0",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "0c17b7b326b07c3693efe4c5af8a719c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "aad82e0af5f3dd1cbf5165a4337df651",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "9a082a23d9e0429053b66bd18dff5df2",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='BYtC-2' random-id='3465c273-4e6d-b798-178d-7aa2a9ffb56d'><marimo-tabs data-initial-value='&quot;&quot;' data-label='null' data-tabs='[&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003e2026-09&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;,&quot;&#92;u003cspan class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&#92;u003e&#92;u003cspan class=&#92;&quot;paragraph&#92;&quot;&#92;u003e2026-08&#92;u003c/span&#92;u003e&#92;u003c/span&#92;u003e&quot;]' data-orientation='&quot;horizontal&quot;'><div data-kind='tab'><marimo-ui-element object-id='BYtC-0' random-id='e9262a0b-a544-c933-539a-d3da3bb18f2d'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;[{&#92;&quot;per_day&#92;&quot;:26.3,&#92;&quot;total&#92;&quot;:263,&#92;&quot;full&#92;&quot;:6,&#92;&quot;pdf&#92;&quot;:257,&#92;&quot;eligible_days&#92;&quot;:10,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-09-21&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;Action potential waveforms are state-dependent&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Martin-Burgos, B.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:22.55,&#92;&quot;total&#92;&quot;:248,&#92;&quot;full&#92;&quot;:5,&#92;&quot;pdf&#92;&quot;:243,&#92;&quot;eligible_days&#92;&quot;:11,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-09-20&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;Loss of TDP-43 function drives cryptic circular RNAs in neurodegenerative diseases&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Zhu, C.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:20.5,&#92;&quot;total&#92;&quot;:328,&#92;&quot;full&#92;&quot;:12,&#92;&quot;pdf&#92;&quot;:316,&#92;&quot;eligible_days&#92;&quot;:16,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-09-15&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;A hypothalamic circuit links hunger to mesolimbic dopamine to drive feeding&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Bacharach, S. Z.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:18.93,&#92;&quot;total&#92;&quot;:511,&#92;&quot;full&#92;&quot;:34,&#92;&quot;pdf&#92;&quot;:477,&#92;&quot;eligible_days&#92;&quot;:27,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-09-04&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;Systematic CRISPRi perturbation of 1,408 autism risk genes maps multilevel transcriptional convergence in human cortical neurons&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Gogate, A.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:16.8,&#92;&quot;total&#92;&quot;:504,&#92;&quot;full&#92;&quot;:22,&#92;&quot;pdf&#92;&quot;:482,&#92;&quot;eligible_days&#92;&quot;:30,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-09-01&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;How to pour a cup of coffee&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Midlagajni, N.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:16.7,&#92;&quot;total&#92;&quot;:167,&#92;&quot;full&#92;&quot;:5,&#92;&quot;pdf&#92;&quot;:162,&#92;&quot;eligible_days&#92;&quot;:10,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-09-21&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;A bipolar disorder-associated ultra-rare AKAP11 protein-truncating variant attenuates stimulus-dependent PKA activation and induces anxiety- and depression-related behaviors in mice&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Luo, A. X.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:15.6,&#92;&quot;total&#92;&quot;:156,&#92;&quot;full&#92;&quot;:5,&#92;&quot;pdf&#92;&quot;:151,&#92;&quot;eligible_days&#92;&quot;:10,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-09-21&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;Dale&#x27;s law, stability and nonlinearity are sufficient constraints to ignite transient and self-sustained neural dynamics&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Condruz, N.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:15.29,&#92;&quot;total&#92;&quot;:214,&#92;&quot;full&#92;&quot;:6,&#92;&quot;pdf&#92;&quot;:208,&#92;&quot;eligible_days&#92;&quot;:14,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-09-17&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;Transplantation reveals birthdate-dependent post-mitotic competence in cortical neurons&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Balavoine, E.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:15.14,&#92;&quot;total&#92;&quot;:333,&#92;&quot;full&#92;&quot;:29,&#92;&quot;pdf&#92;&quot;:304,&#92;&quot;eligible_days&#92;&quot;:22,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-09-09&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;What is it like to be a blob? A distributed, decentred and context-sensitive neurobiology of consciousness&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Skipper, J. I.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:14.23,&#92;&quot;total&#92;&quot;:185,&#92;&quot;full&#92;&quot;:7,&#92;&quot;pdf&#92;&quot;:178,&#92;&quot;eligible_days&#92;&quot;:13,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-09-18&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;Behavioral demands organize a decision process into distinct yet coordinated neural representations in parietal cortex&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;So, N.&#92;&quot;}]&quot;' data-total-rows='50' data-total-columns='8' data-max-columns='50' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-show-filters='false' data-show-download='true' data-show-search='true' data-show-column-summaries='true' data-show-data-types='true' data-show-page-size-selector='true' data-show-column-explorer='true' data-show-chart-builder='true' data-row-headers='[]' data-hidden-columns='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element></div><div data-kind='tab'><marimo-ui-element object-id='BYtC-1' random-id='2cce460a-adcd-4ca3-4432-24e404ca4b93'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;[{&#92;&quot;per_day&#92;&quot;:13.0,&#92;&quot;total&#92;&quot;:312,&#92;&quot;full&#92;&quot;:23,&#92;&quot;pdf&#92;&quot;:289,&#92;&quot;eligible_days&#92;&quot;:24,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-08-08&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;Geometric constraints and cognitive inputs jointly shape emergent brain dynamics and topology&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Beyh, A.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:11.0,&#92;&quot;total&#92;&quot;:110,&#92;&quot;full&#92;&quot;:3,&#92;&quot;pdf&#92;&quot;:107,&#92;&quot;eligible_days&#92;&quot;:10,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-08-22&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;Claustral pathway coordinates distributed cortical dynamics with hippocampal output during sleep to promote memory consolidation&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Portet, C.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:10.67,&#92;&quot;total&#92;&quot;:128,&#92;&quot;full&#92;&quot;:4,&#92;&quot;pdf&#92;&quot;:124,&#92;&quot;eligible_days&#92;&quot;:12,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-08-20&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;Parametric neural control differentiates top neural network models of primate visual cortex&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Prince, J. S.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:10.65,&#92;&quot;total&#92;&quot;:330,&#92;&quot;full&#92;&quot;:24,&#92;&quot;pdf&#92;&quot;:306,&#92;&quot;eligible_days&#92;&quot;:31,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-08-01&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;Millisecond-scale, single-neuron credit assignment in a songbird&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Scherrer, J. R.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:9.58,&#92;&quot;total&#92;&quot;:115,&#92;&quot;full&#92;&quot;:6,&#92;&quot;pdf&#92;&quot;:109,&#92;&quot;eligible_days&#92;&quot;:12,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-08-20&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;Tracking the hidden dynamics of proprioception&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Villavicencio, P. S.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:8.6,&#92;&quot;total&#92;&quot;:129,&#92;&quot;full&#92;&quot;:22,&#92;&quot;pdf&#92;&quot;:107,&#92;&quot;eligible_days&#92;&quot;:15,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-08-17&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;Modeling and targeting haploinsufficiency in SHINE syndrome&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Abdellatif, D.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:7.11,&#92;&quot;total&#92;&quot;:128,&#92;&quot;full&#92;&quot;:18,&#92;&quot;pdf&#92;&quot;:110,&#92;&quot;eligible_days&#92;&quot;:18,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-08-14&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;GIRK Channel Loss of Function Increases Dendritic Excitability in a Mouse Model of GNB1 Encephalopathy&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Gritz, S.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:6.72,&#92;&quot;total&#92;&quot;:168,&#92;&quot;full&#92;&quot;:25,&#92;&quot;pdf&#92;&quot;:143,&#92;&quot;eligible_days&#92;&quot;:25,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-08-07&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;Neuromuscular Architecture of the Siphonophore Colony&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Moroz, L. L.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:6.64,&#92;&quot;total&#92;&quot;:73,&#92;&quot;full&#92;&quot;:8,&#92;&quot;pdf&#92;&quot;:65,&#92;&quot;eligible_days&#92;&quot;:11,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-08-21&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;Brain-Language Alignment During Naturalistic Reading and Its Disruption by Mind-Wandering&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Sun, H.&#92;&quot;},{&#92;&quot;per_day&#92;&quot;:6.45,&#92;&quot;total&#92;&quot;:71,&#92;&quot;full&#92;&quot;:4,&#92;&quot;pdf&#92;&quot;:67,&#92;&quot;eligible_days&#92;&quot;:11,&#92;&quot;date&#92;&quot;:&#92;&quot;2026-08-21&#92;&quot;,&#92;&quot;title&#92;&quot;:&#92;&quot;Sustained attention under load: Neurophysiological mechanisms and behavioural consequences&#92;&quot;,&#92;&quot;first_author&#92;&quot;:&#92;&quot;Barne, L. C.&#92;&quot;}]&quot;' data-total-rows='47' data-total-columns='8' data-max-columns='50' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-show-filters='false' data-show-download='true' data-show-search='true' data-show-column-summaries='true' data-show-data-types='true' data-show-page-size-selector='true' data-show-column-explorer='true' data-show-chart-builder='true' data-row-headers='[]' data-hidden-columns='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element></div></marimo-tabs></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "[W 261002 11:35:12 lazy:1498] Failed to serialize return for cache; marking unserializable: cannot pickle 'weakref.ReferenceType' object\n",
+          "mimetype": "text/plain"
+        }
+      ]
+    }
+  ]
+}
