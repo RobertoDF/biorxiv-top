@@ -2,3 +2,5 @@ site/
 data/
 __pycache__/
 .venv/
+__marimo__/cache/
+__marimo__/session/
