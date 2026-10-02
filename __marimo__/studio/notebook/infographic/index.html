@@ -87,8 +87,9 @@
       <header>
         <div class="eyebrow">bioRxiv · <span data-bind="category"></span> · readership</div>
         <h1>Which neuroscience preprints are people reading?</h1>
-        <p class="lede">Preprints ranked by <b>reads during the period</b>: full-text views + PDF downloads (abstract views
-          are left out), counted across every tracked preprint, whenever it was posted. bioRxiv reports usage per
+        <p class="lede">Preprints ranked by <b>reads per day</b>: full-text views + PDF downloads in the period (abstract views
+          are left out) ÷ days the preprint was online in it, across every tracked preprint, whenever it was posted.
+          A preprint needs at least <span data-bind="min_days"></span> days online in the period to be ranked. bioRxiv reports usage per
           calendar month, so periods are whole months, and the current month counts up to the latest data. Pick a timeframe or a single month,
           then click a paper to see its rank over time.</p>
       </header>
@@ -107,7 +108,7 @@
           </div>
         </div>
         <div class="head" aria-hidden="true">
-          <span>#</span><span>Preprint</span><span>Full text + PDF</span><span class="r">Reads</span><span class="r">Days online</span>
+          <span>#</span><span>Preprint</span><span>Full text + PDF per day</span><span class="r">Reads/day</span><span class="r">Days online</span>
         </div>
         <div id="rows"></div>
       </section>
@@ -119,7 +120,7 @@
         <div class="meta" id="d-meta"></div>
         <div id="d-chart"></div>
         <table id="d-table"></table>
-        <p class="meta">Monthly rank among all tracked new <span data-bind="category"></span> preprints by that month's full-text + PDF reads. Lower is better.</p>
+        <p class="meta">Monthly rank among all tracked new <span data-bind="category"></span> preprints by that month's full-text + PDF reads ÷ days online that month (at least <span data-bind="min_days"></span>). Lower is better.</p>
       </aside>
 
       <footer>
@@ -173,6 +174,7 @@
       let mode = "timeframe";   // "timeframe" | "month"
       let current = null;       // selected timeframe (days) or month (YYYY-MM)
       const short = (iso) => new Date(iso + "T00:00").toLocaleString("en", { month: "short", day: "numeric" });
+      const rate = (v) => (v >= 100 ? fmt.format(Math.round(v)) : v.toFixed(1));
       const tfLabel = (t) => (t.all ? "All tracked" : `Since ${short(t.since)}`);
 
       function renderKpis() {
@@ -181,7 +183,7 @@
         const items = [
           [fmt.format(data.n_papers), `preprints tracked (posted since ${short(data.start)})`],
           [fmt.format(tf.reads), `full-text + PDF reads since ${short(tf.since)}`],
-          [top ? fmt.format(top.total) : "–", `reads for the #1 paper since ${short(tf.since)}`],
+          [top ? rate(top.per_day) : "–", `reads/day for the #1 paper since ${short(tf.since)}`],
           [data.months.length, "months ranked"],
         ];
         $(".kpis").replaceChildren(...items.map(([v, l]) => el("div", { className: "kpi" }, el("b", { textContent: v }), el("span", { textContent: l }))));
@@ -221,9 +223,9 @@
           ? `${short(m.since)} – ${short(m.until)}`
           : monthName(m.month) + (m.in_progress ? " · in progress" : "");
         $("#month-sub").textContent =
-          `${fmt.format(m.n_ranked)} preprints read in this period · ${fmt.format(m.n_new)} of them posted in it · ` +
-          `${fmt.format(m.reads)} full-text + PDF reads in total`;
-        const max = Math.max(1, ...m.results.map((r) => r.total));
+          `${fmt.format(m.n_ranked)} preprints with ≥ ${data.min_days} days online ranked · ${fmt.format(m.n_new)} posted in this period · ` +
+          `reads in the period ÷ days online in it`;
+        const max = Math.max(0.01, ...m.results.map((r) => r.per_day));
         $("#rows").replaceChildren(
           ...m.results.map((r, i) => {
             const row = el("button", { type: "button", className: "row" },
@@ -232,11 +234,11 @@
                 el("div", { className: "title", textContent: r.title }),
                 el("div", { className: "meta", textContent: `${r.first_author} et al. · posted ${r.date}` })),
               el("span", { className: "barcell" },
-                el("div", { className: "bar", title: `${r.full} full text · ${r.pdf} PDF` },
-                  el("i", { className: "f", style: `width:${(100 * r.full) / max}%` }),
-                  el("i", { className: "p", style: `width:${(100 * r.pdf) / max}%` })),
-                el("div", { className: "barnums", textContent: `${fmt.format(r.full)} full + ${fmt.format(r.pdf)} PDF` })),
-              el("span", { className: "r total" }, fmt.format(r.total), el("small", { textContent: "reads" })),
+                el("div", { className: "bar", title: `${r.full} full text · ${r.pdf} PDF over ${r.days} days` },
+                  el("i", { className: "f", style: `width:${(100 * r.full) / r.days / max}%` }),
+                  el("i", { className: "p", style: `width:${(100 * r.pdf) / r.days / max}%` })),
+                el("div", { className: "barnums", textContent: `${fmt.format(r.total)} reads: ${fmt.format(r.full)} full + ${fmt.format(r.pdf)} PDF` })),
+              el("span", { className: "r total" }, rate(r.per_day), el("small", { textContent: "reads/day" })),
               el("span", { className: "r dayscell" },
                 el("div", { className: "days", textContent: `${r.days} / ${m.days}` }),
                 el("div", { className: "gauge" }, el("i", { style: `width:${Math.min(100, (100 * r.days) / m.days)}%` }))),
@@ -274,11 +276,11 @@
         shell.querySelectorAll('.row[aria-expanded="true"]').forEach((n) => n.setAttribute("aria-expanded", "false"));
         row.setAttribute("aria-expanded", "true");
         $("#d-title").replaceChildren(el("a", { href: `https://doi.org/${r.doi}`, target: "_blank", rel: "noopener", textContent: r.title }));
-        $("#d-meta").textContent = `${r.first_author} et al. · posted ${r.date}`;
+        $("#d-meta").textContent = `${r.first_author} et al. · posted ${r.date} · ${rate(r.per_day)} reads/day`;
         $("#d-chart").replaceChildren(historyChart(r.history));
         $("#d-table").replaceChildren(
-          el("tr", {}, ...["Month", "Rank", "of", "Reads"].map((t) => el("th", { textContent: t }))),
-          ...r.history.map((p) => el("tr", {}, ...[monthName(p.month, "short"), `#${p.rank}`, fmt.format(p.of), fmt.format(p.reads)].map((t) => el("td", { textContent: t })))),
+          el("tr", {}, ...["Month", "Rank", "of", "Reads", "Per day"].map((t) => el("th", { textContent: t }))),
+          ...r.history.map((p) => el("tr", {}, ...[monthName(p.month, "short"), `#${p.rank}`, fmt.format(p.of), fmt.format(p.reads), rate(p.per_day)].map((t) => el("td", { textContent: t })))),
         );
         const d = $("#detail");
         d.classList.add("open");
@@ -300,7 +302,7 @@
         const keys = mode === "timeframe" ? data.timeframes.map((t) => t.since) : data.months.map((m) => m.month);
         if (!keys.includes(current)) current = keys[0];
         shell.querySelectorAll('[data-bind="category"]').forEach((n) => (n.textContent = data.category));
-        const binds = { start: data.start, end: data.end, updated: data.updated, coverage: `${fmt.format(data.n_with_metrics)} / ${fmt.format(data.n_papers)}` };
+        const binds = { min_days: data.min_days, start: data.start, end: data.end, updated: data.updated, coverage: `${fmt.format(data.n_with_metrics)} / ${fmt.format(data.n_papers)}` };
         for (const [k, v] of Object.entries(binds)) shell.querySelectorAll(`[data-bind="${k}"]`).forEach((n) => (n.textContent = v));
         renderKpis();
         renderTabs();
