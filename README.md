@@ -6,7 +6,7 @@ Infographic of the most-read recent bioRxiv **neuroscience** preprints, refreshe
 
 ## Metric
 
-**Reads per day.** Reads (full-text views + PDF downloads; abstract views are ignored) in the period ÷ days the preprint was online in it. Every tracked preprint counts, whenever it was posted, but it needs at least 15 days online in the period to be ranked. bioRxiv reports usage per calendar month, so periods are whole months, and the current month counts up to the latest data.
+**Reads per day.** Reads (full-text views + PDF downloads; abstract views are ignored) in the period ÷ days the preprint was online in it. Every tracked preprint counts, whenever it was posted, but it needs at least 15 days online in the period to be ranked. bioRxiv reports usage per calendar month, so periods are whole months. Timeframes use complete months only; in the by-month view the current month counts up to the latest data.
 
 - **Timeframe** (default): reads/day since the 1st of the month 1, 2 or 3 months ago, or over the whole tracked period.
 - **By month:** reads/day in a single month.

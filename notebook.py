@@ -36,11 +36,11 @@ def _(mo):
     The metric is **reads per day during a period**: full-text views + PDF downloads (abstract views are ignored)
     in the period ÷ days the preprint was online in it, over **all** tracked preprints whatever their posting date.
     A preprint needs at least **15 days online** in the period to be ranked. bioRxiv reports usage per calendar
-    month, so periods are whole months (the current month counts up to the data date).
+    month, so periods are whole months.
 
-    * **Timeframe ranking (default):** reads since the 1st of the month 1, 2 or 3 months ago, or over the
-      whole tracked period.
-    * **Monthly ranking:** reads in a single month.
+    * **Timeframe ranking (default):** reads in the last 1, 2 or 3 complete months, or over all complete
+      tracked months. The current, unfinished month is left out.
+    * **Monthly ranking:** reads in a single month (the current month counts up to the data date).
     * **Rank history:** a paper's rank in each month among all tracked preprints, by that month's reads per day.
 
     Tracked preprints are new (v1) preprints posted since the scrape start date.
@@ -149,12 +149,13 @@ def _(TOP_N, month_end, month_list, rank_period, today):
 
 
 @app.cell
-def _(TIMEFRAMES, TOP_N, month_list, rank_period):
-    # windows start on the 1st of the month N complete months back and run to the data date
-    _starts = sorted({max(0, len(month_list) - 1 - _n) for _n in TIMEFRAMES} | {0}, reverse=True)
+def _(TIMEFRAMES, TOP_N, month_end, month_list, rank_period, today):
+    # windows cover the last N complete calendar months (the in-progress month is left out)
+    _full = [_m for _m in month_list if month_end(_m) < today] or month_list[:1]
+    _starts = sorted({max(0, len(_full) - _n) for _n in TIMEFRAMES} | {0}, reverse=True)
     timeframe_rankings = []
     for _i in _starts:
-        _block = rank_period(month_list[_i:])
+        _block = rank_period(_full[_i:])
         _block["all"] = _i == 0
         _block["results"] = _block["results"][:TOP_N]
         timeframe_rankings.append(_block)

@@ -13,7 +13,7 @@ interaction (month tabs, rank-history side panel) is browser-only on that projec
 - Ranking metric everywhere: reads per day = full-text views + PDF downloads in the period (abstract views excluded)
   ÷ days online in the period; needs >= 15 days online (MIN_DAYS),
   over all tracked preprints regardless of posting date. Periods are whole calendar months (bioRxiv usage is monthly).
-- Default mode "Timeframe": since the 1st of the month 1/2/3 months back, plus all tracked months.
+- Default mode "Timeframe": the last 1/2/3 complete months, plus all complete tracked months (current month excluded).
 - "By month" mode: that month's reads/day. Rows show days online within the period.
 - Clicking a paper shows its monthly rank among all tracked preprints by that month's reads/day (log-scale chart + table).
 - Aesthetic: editorial, warm paper background, Fraunces headings + Inter body, bioRxiv red accent,

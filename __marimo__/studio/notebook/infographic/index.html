@@ -122,7 +122,7 @@
         <p class="method">Preprints ranked by <b>reads per day</b>: full-text views + PDF downloads in the period (abstract views
           are left out) ÷ days the preprint was online in it, across every tracked preprint, whenever it was posted.
           A preprint needs at least <span data-bind="min_days"></span> days online in the period to be ranked. bioRxiv reports usage per
-          calendar month, so periods are whole months, and the current month counts up to the latest data. Click a paper to see its rank over time.</p>
+          calendar month, so periods are whole months. Timeframes use complete months only; in the by-month view the current month counts up to the latest data. Click a paper to see its rank over time.</p>
         <p>Data: the <a href="https://api.biorxiv.org/">bioRxiv API</a> plus each preprint's public article-metrics page. Tracks new (v1) preprints posted
           <span data-bind="start"></span> to <span data-bind="end"></span>. Metrics were retrieved for
           <span data-bind="coverage"></span> of them. Updated <span data-bind="updated"></span>, and refreshed every few hours.
@@ -174,7 +174,9 @@
       let current = null;       // selected timeframe (days) or month (YYYY-MM)
       const short = (iso) => new Date(iso + "T00:00").toLocaleString("en", { month: "short", day: "numeric" });
       const rate = (v) => (v >= 100 ? fmt.format(Math.round(v)) : v.toFixed(1));
-      const tfLabel = (t) => (t.all ? "All tracked" : `Since ${short(t.since)}`);
+      const mon = (iso) => new Date(iso + "T00:00").toLocaleString("en", { month: "short" });
+      const span = (t) => (t.since.slice(0, 7) === t.until.slice(0, 7) ? mon(t.since) : `${mon(t.since)} – ${mon(t.until)}`);
+      const tfLabel = (t) => (t.all ? "All tracked" : span(t));
 
       function renderKpis(m) {
         const top = m.results[0];
@@ -202,7 +204,7 @@
           }),
         );
         const opts = mode === "timeframe"
-          ? data.timeframes.map((t) => [t.since, tfLabel(t), t.all ? `since ${short(t.since)}` : null])
+          ? data.timeframes.map((t) => [t.since, tfLabel(t), t.all ? span(t) : null])
           : data.months.map((m) => [m.month, monthName(m.month, "short"), m.in_progress ? "so far" : null]);
         $(".months").replaceChildren(
           ...opts.map(([key, label, note]) => {
