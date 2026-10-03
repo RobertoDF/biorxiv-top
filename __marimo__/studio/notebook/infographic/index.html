@@ -110,7 +110,7 @@
           </div>
         </div>
         <div class="head" aria-hidden="true">
-          <span>#</span><span>Preprint</span><span>Reads vs. preprints of the same age</span><span class="r">Score</span><span class="r">Days online</span>
+          <span>#</span><span>Preprint</span><span>Reads vs. preprints of the same age</span><span class="r">Score</span><span class="r">Days since posting</span>
         </div>
         <div id="rows"></div>
       </section>
@@ -279,6 +279,9 @@
           `score = reads ÷ reads of a typical preprint of the same age · ${fmt.format(data.n_papers)} preprints tracked since ${short(data.start)}`;
         renderKpis(m);
         const max = Math.max(0.01, ...m.results.map((r) => r.score));
+        // age = days from posting to the end of the period (inclusive)
+        const age = (r) => Math.round((Date.parse(m.until) - Date.parse(r.date)) / 864e5) + 1;
+        const maxAge = Math.max(1, ...m.results.map(age));
         $("#rows").replaceChildren(
           ...m.results.map((r, i) => {
             const row = el("button", { type: "button", className: "row" },
@@ -293,8 +296,8 @@
                 el("div", { className: "barnums", textContent: `${fmt.format(r.total)} reads (${fmt.format(r.full)} full + ${fmt.format(r.pdf)} PDF) · ${rate(r.per_day)}/day vs. ${rate(r.typical_per_day)} typical` })),
               el("span", { className: "r total" }, x(r.score), el("small", { textContent: "vs. same age" })),
               el("span", { className: "r dayscell" },
-                el("div", { className: "days", textContent: `${r.days} / ${m.days}` }),
-                el("div", { className: "gauge" }, el("i", { style: `width:${Math.min(100, (100 * r.days) / m.days)}%` }))),
+                el("div", { className: "days", title: `${r.days} of them in this period`, textContent: `${fmt.format(age(r))} days` }),
+                el("div", { className: "gauge" }, el("i", { style: `width:${Math.min(100, (100 * age(r)) / maxAge)}%` }))),
             );
             row.setAttribute("aria-expanded", "false");
             row.onclick = () => openDetail(r, row);
