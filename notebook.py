@@ -33,15 +33,16 @@ def _(mo):
         """
     # Most-read bioRxiv preprints
 
-    The metric is **reads per day during a period**: full-text views + PDF downloads (abstract views are ignored)
-    in the period ÷ days the preprint was online in it, over **all** tracked preprints whatever their posting date.
-    A preprint needs at least **15 days online** in the period to be ranked. bioRxiv reports usage per calendar
-    month, so periods are whole months.
+    New preprints get most of their reads right after posting, so raw reads per day mostly reward recency.
+    The ranking therefore uses an **age-adjusted score**: a preprint's reads (full-text views + PDF downloads;
+    abstract views are ignored) in the period ÷ the reads expected for a preprint of its age. The expectation for
+    each month is the median reads per day that month of all preprints posted within ±3 days of it, times its days
+    online. A score of 3× means three times the reads of a typical preprint of the same age. A preprint needs at
+    least **15 days online** in the period to be ranked. bioRxiv reports usage per calendar month.
 
-    * **Timeframe ranking (default):** reads in the last 1, 2 or 3 complete months, or over all complete
-      tracked months. The current, unfinished month is left out.
-    * **Monthly ranking:** reads in a single month (the current month counts up to the data date).
-    * **Rank history:** a paper's rank in each month among all tracked preprints, by that month's reads per day.
+    * **Timeframe ranking (default):** the last 1, 2 or 3 complete months, or all complete tracked months.
+    * **Monthly ranking:** a single month (the current month counts up to the data date).
+    * **Rank history:** a paper's rank by score in each month among all tracked preprints.
 
     Tracked preprints are new (v1) preprints posted since the scrape start date.
     """
@@ -54,9 +55,10 @@ def _(json, mo):
     TOP_N = 50
     TIMEFRAMES = [1, 2, 3]  # complete months back, plus the whole tracked period
     MIN_DAYS = 15  # days online within a period needed to be ranked
+    PEER_DAYS = 3  # peers for the age baseline: preprints posted within this many days of each other
     raw = json.loads((mo.notebook_dir() / "data" / "usage.json").read_text())
     papers = [p for p in raw["papers"] if p["usage"]]
-    return MIN_DAYS, TIMEFRAMES, TOP_N, papers, raw
+    return MIN_DAYS, PEER_DAYS, TIMEFRAMES, TOP_N, papers, raw
 
 
 @app.cell
@@ -75,40 +77,69 @@ def _(dt, raw):
 
 
 @app.cell
-def _(MIN_DAYS, dt, month_end, month_list, papers, statistics, today):
+def _(MIN_DAYS, PEER_DAYS, dt, month_end, month_list, papers, statistics, today):
     def days_online(p, first, last):
         """Days the preprint was online between dates `first` and `last` (inclusive)."""
         return max(0, (min(last, today) - max(dt.date.fromisoformat(p["date"]), first)).days + 1)
 
-    def reads(p, months):
-        full = sum(p["usage"].get(m, (0, 0))[0] for m in months)
-        pdf = sum(p["usage"].get(m, (0, 0))[1] for m in months)
-        return full, pdf
+    def bounds(ym):
+        return dt.date.fromisoformat(ym + "-01"), month_end(ym)
 
-    # rank among all tracked preprints, per month, by that month's full + PDF reads per day online
+    # Typical reads/day of a preprint of a given age: for each month and posting date, the median reads/day that
+    # month of all preprints posted within +-PEER_DAYS of that date (so peers share its age and days online).
+    _rates = {}  # (month, posting date) -> [reads/day]
+    for p in papers:
+        for _ym in month_list:
+            _days = days_online(p, *bounds(_ym))
+            if _days and _ym in p["usage"]:
+                _rates.setdefault((_ym, p["date"]), []).append(sum(p["usage"][_ym]) / _days)
+    typical = {}
+    for _ym in month_list:
+        for _d in {d for (m, d) in _rates if m == _ym}:
+            _d0 = dt.date.fromisoformat(_d)
+            _peers = [
+                r
+                for k in range(-PEER_DAYS, PEER_DAYS + 1)
+                for r in _rates.get((_ym, str(_d0 + dt.timedelta(days=k))), [])
+            ]
+            if len(_peers) >= 10 and statistics.median(_peers) > 0:
+                typical[(_ym, _d)] = statistics.median(_peers)
+
+    def score(p, months):
+        """Reads, days and expected reads over the months where the preprint has usage and a peer baseline."""
+        full = pdf = days = expected = 0
+        for _ym in months:
+            _days = days_online(p, *bounds(_ym))
+            if not _days or _ym not in p["usage"] or (_ym, p["date"]) not in typical:
+                continue
+            full += p["usage"][_ym][0]
+            pdf += p["usage"][_ym][1]
+            days += _days
+            expected += typical[(_ym, p["date"])] * _days
+        return full, pdf, days, expected
+
+    # rank among all tracked preprints, per month, by that month's age-adjusted score
     rank_history = {p["doi"]: [] for p in papers}
     for _ym in month_list:
-        _first, _last = dt.date.fromisoformat(_ym + "-01"), month_end(_ym)
         _rows = []
         for p in papers:
-            _days = days_online(p, _first, _last)
-            if _ym in p["usage"] and _days >= MIN_DAYS:
-                _rows.append((sum(p["usage"][_ym]) / _days, sum(p["usage"][_ym]), p["doi"]))
+            _full, _pdf, _days, _exp = score(p, [_ym])
+            if _days >= MIN_DAYS and _exp:
+                _rows.append(((_full + _pdf) / _exp, _full + _pdf, _days, p["doi"]))
         _rows.sort(reverse=True)
-        for _rank, (_rate, _reads, _doi) in enumerate(_rows, 1):
-            rank_history[_doi].append(
-                {"month": _ym, "rank": _rank, "of": len(_rows), "reads": _reads, "per_day": round(_rate, 2)}
-            )
+        for _rank, (_score, _reads, _days, _doi) in enumerate(_rows, 1):
+            rank_history[_doi].append({
+                "month": _ym, "rank": _rank, "of": len(_rows), "reads": _reads,
+                "per_day": round(_reads / _days, 2), "score": round(_score, 2),
+            })
 
     def rank_period(months):
-        """All tracked preprints with >= MIN_DAYS online in `months`, ranked by full + PDF reads per day online."""
-        first = dt.date.fromisoformat(months[0] + "-01")
-        last = min(month_end(months[-1]), today)
+        """Tracked preprints with >= MIN_DAYS online in `months`, ranked by reads / reads expected for their age."""
+        first, last = bounds(months[0])[0], min(month_end(months[-1]), today)
         rows = []
         for p in papers:
-            full, pdf = reads(p, months)
-            days = days_online(p, first, last)
-            if days < MIN_DAYS or full + pdf == 0:
+            full, pdf, days, expected = score(p, months)
+            if days < MIN_DAYS or not expected:
                 continue
             rows.append({
                 "doi": p["doi"],
@@ -120,12 +151,12 @@ def _(MIN_DAYS, dt, month_end, month_list, papers, statistics, today):
                 "total": full + pdf,
                 "days": days,
                 "per_day": round((full + pdf) / days, 2),
+                "typical_per_day": round(expected / days, 2),
+                "score": round((full + pdf) / expected, 2),
                 "history": rank_history[p["doi"]],
             })
-        rows.sort(key=lambda r: -r["per_day"])
-        rates = sorted(r["per_day"] for r in rows)
+        rows.sort(key=lambda r: -r["score"])
         return {
-            "median_per_day": round(statistics.median(rates), 2) if rates else 0,
             "since": str(first),
             "until": str(last),
             "days": (last - first).days + 1,
@@ -163,9 +194,10 @@ def _(TIMEFRAMES, TOP_N, month_end, month_list, rank_period, today):
 
 
 @app.cell
-def _(MIN_DAYS, monthly_rankings, papers, raw, timeframe_rankings):
+def _(MIN_DAYS, PEER_DAYS, monthly_rankings, papers, raw, timeframe_rankings):
     infographic = {
         "min_days": MIN_DAYS,
+        "peer_days": PEER_DAYS,
         "category": raw["category"],
         "updated": raw["updated"],
         "start": raw["start"],
@@ -183,7 +215,7 @@ def _(mo, monthly_rankings):
     mo.ui.tabs({
         m["month"]: mo.ui.table(
             [
-                {k: r[k] for k in ("per_day", "total", "full", "pdf", "days", "date", "title", "first_author")}
+                {k: r[k] for k in ("score", "per_day", "typical_per_day", "total", "days", "date", "title", "first_author")}
                 for r in m["results"]
             ],
             selection=None,
