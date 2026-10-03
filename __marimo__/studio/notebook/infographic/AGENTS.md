@@ -13,7 +13,7 @@ interaction (month tabs, rank-history side panel) is browser-only on that projec
 - Ranking metric everywhere: age-adjusted score = full-text + PDF reads in the period ÷ expected reads, where expected = per month, the median reads/day of tracked preprints posted within ±PEER_DAYS (3) days, times days online
   in the period; needs >= 15 days online (MIN_DAYS),
   over all tracked preprints regardless of posting date. Periods are whole calendar months (bioRxiv usage is monthly).
-- "Timeframe" mode: the last 1/2/3 complete months, plus all complete tracked months (current month excluded).
+- "Timeframe" mode: From / To selectors over complete months (current month excluded); `timeframes` holds one block per from ≤ to pair, rank histories live in `histories[doi]`.
 - Default mode "By month": opens on the last complete month; a year selector filters the month chips. Rows show score, reads/day vs. typical, and days online.
 - Clicking a paper shows its monthly rank among all tracked preprints by that month's score (log-scale chart + table).
 - Aesthetic: editorial, warm paper background, Fraunces headings + Inter body, bioRxiv red accent,

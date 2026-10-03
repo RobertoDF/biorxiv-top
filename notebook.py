@@ -40,8 +40,8 @@ def _(mo):
     online. A score of 3× means three times the reads of a typical preprint of the same age. A preprint needs at
     least **15 days online** in the period to be ranked. bioRxiv reports usage per calendar month.
 
-    * **Timeframe ranking (default):** the last 1, 2 or 3 complete months, or all complete tracked months.
-    * **Monthly ranking:** a single month (the current month counts up to the data date).
+    * **Monthly ranking (default):** a single month (the current month counts up to the data date).
+    * **Timeframe ranking:** any From-To range of complete months.
     * **Rank history:** a paper's rank by score in each month among all tracked preprints.
 
     Tracked preprints are new (v1) preprints posted since the scrape start date.
@@ -53,12 +53,11 @@ def _(mo):
 @app.cell
 def _(json, mo):
     TOP_N = 50
-    TIMEFRAMES = [1, 2, 3]  # complete months back, plus the whole tracked period
     MIN_DAYS = 15  # days online within a period needed to be ranked
     PEER_DAYS = 3  # peers for the age baseline: preprints posted within this many days of each other
     raw = json.loads((mo.notebook_dir() / "data" / "usage.json").read_text())
     papers = [p for p in raw["papers"] if p["usage"]]
-    return MIN_DAYS, PEER_DAYS, TIMEFRAMES, TOP_N, papers, raw
+    return MIN_DAYS, PEER_DAYS, TOP_N, papers, raw
 
 
 @app.cell
@@ -180,16 +179,16 @@ def _(TOP_N, month_end, month_list, rank_period, today):
 
 
 @app.cell
-def _(TIMEFRAMES, TOP_N, month_end, month_list, rank_period, today):
-    # windows cover the last N complete calendar months (the in-progress month is left out)
+def _(TOP_N, month_end, month_list, rank_period, today):
+    # every From-To range of complete calendar months (the in-progress month is left out)
     _full = [_m for _m in month_list if month_end(_m) < today] or month_list[:1]
-    _starts = sorted({max(0, len(_full) - _n) for _n in TIMEFRAMES} | {0}, reverse=True)
     timeframe_rankings = []
-    for _i in _starts:
-        _block = rank_period(_full[_i:])
-        _block["all"] = _i == 0
-        _block["results"] = _block["results"][:TOP_N]
-        timeframe_rankings.append(_block)
+    for _i in range(len(_full)):
+        for _j in range(_i, len(_full)):
+            _block = rank_period(_full[_i : _j + 1])
+            _block["from"], _block["to"] = _full[_i], _full[_j]
+            _block["results"] = _block["results"][:TOP_N]
+            timeframe_rankings.append(_block)
     return (timeframe_rankings,)
 
 
@@ -204,8 +203,10 @@ def _(MIN_DAYS, PEER_DAYS, monthly_rankings, papers, raw, timeframe_rankings):
         "end": raw["end"],
         "n_papers": len(raw["papers"]),
         "n_with_metrics": len(papers),
-        "timeframes": timeframe_rankings,
-        "months": monthly_rankings,
+        # rank histories are shared by all blocks, so store each shown paper's once
+        "histories": {r["doi"]: r["history"] for b in timeframe_rankings + monthly_rankings for r in b["results"]},
+        "timeframes": [{**b, "results": [{k: v for k, v in r.items() if k != "history"} for r in b["results"]]} for b in timeframe_rankings],
+        "months": [{**b, "results": [{k: v for k, v in r.items() if k != "history"} for r in b["results"]]} for b in monthly_rankings],
     }
     return (infographic,)
 

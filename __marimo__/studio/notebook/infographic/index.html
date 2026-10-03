@@ -32,6 +32,8 @@
       .modes button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
       .months button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
       .months button small { opacity: .65; margin-left: .3rem; }
+      .range { display: inline-flex; align-items: center; gap: .5rem; font-size: .85rem; color: var(--muted); margin-right: 1.2rem; }
+      .range select { font: inherit; font-size: .9rem; color: var(--ink); background: transparent; border: 1px solid var(--rule); border-radius: 999px; padding: .45rem .9rem; cursor: pointer; }
       .years { display: flex; gap: 1.1rem; margin-bottom: .6rem; }
       .years[hidden] { display: none; }
       .years button { font: inherit; font-size: .95rem; font-weight: 600; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted); padding: .1rem 0; cursor: pointer; }
@@ -181,12 +183,17 @@
       let mode = "month";       // "month" | "timeframe"
       let current = null;       // selected timeframe (since date) or month (YYYY-MM)
       let year = null;          // selected year in month mode
+      let tfFrom = null, tfTo = null; // selected timeframe range (YYYY-MM, inclusive)
+      const tfMonths = () => [...new Set(data.timeframes.map((t) => t.from))].sort();
+      const tfBlock = () => data.timeframes.find((t) => t.from === tfFrom && t.to === tfTo);
+      const pickTf = () => {
+        const ms = tfMonths();
+        tfTo = ms[ms.length - 1];
+        tfFrom = ms[Math.max(0, ms.length - 3)];
+      };
       const lastFull = () => (data.months.find((m) => !m.in_progress) ?? data.months[0]).month;
       const short = (iso) => new Date(iso + "T00:00").toLocaleString("en", { month: "short", day: "numeric" });
       const rate = (v) => (v >= 100 ? fmt.format(Math.round(v)) : v.toFixed(1));
-      const mon = (iso) => new Date(iso + "T00:00").toLocaleString("en", { month: "short" });
-      const span = (t) => (t.since.slice(0, 7) === t.until.slice(0, 7) ? mon(t.since) : `${mon(t.since)} – ${mon(t.until)}`);
-      const tfLabel = (t) => (t.all ? "All tracked" : span(t));
 
       const x = (v) => `${v >= 10 ? v.toFixed(0) : v.toFixed(1)}×`;
 
@@ -209,8 +216,8 @@
             b.onclick = () => {
               if (mode === k) return;
               mode = k;
-              current = k === "timeframe" ? data.timeframes[0].since : lastFull();
-              year = current.slice(0, 4);
+              if (k === "timeframe") { if (!tfBlock()) pickTf(); }
+              else { current = lastFull(); year = current.slice(0, 4); }
               renderTabs(); renderMonth();
             };
             return b;
@@ -233,9 +240,21 @@
             return b;
           }),
         );
-        const opts = mode === "timeframe"
-          ? data.timeframes.map((t) => [t.since, tfLabel(t), t.all ? span(t) : null])
-          : data.months.filter((m) => m.month.startsWith(year)).map((m) => [m.month, new Date(m.month + "-01T00:00").toLocaleString("en", { month: "short" }), m.in_progress ? "so far" : null]);
+        if (mode === "timeframe") {
+          const ms = tfMonths();
+          const select = (label, value, ok, set) => {
+            const sel = el("select", { ariaLabel: label },
+              ...ms.map((ym) => el("option", { value: ym, textContent: monthName(ym, "short"), disabled: !ok(ym), selected: ym === value })));
+            sel.onchange = () => { set(sel.value); renderTabs(); renderMonth(); };
+            return el("label", { className: "range" }, el("span", { textContent: label }), sel);
+          };
+          $(".months").replaceChildren(
+            select("From", tfFrom, (ym) => ym <= tfTo, (v) => (tfFrom = v)),
+            select("To", tfTo, (ym) => ym >= tfFrom, (v) => (tfTo = v)),
+          );
+          return;
+        }
+        const opts = data.months.filter((m) => m.month.startsWith(year)).map((m) => [m.month, new Date(m.month + "-01T00:00").toLocaleString("en", { month: "short" }), m.in_progress ? "so far" : null]);
         $(".months").replaceChildren(
           ...opts.map(([key, label, note]) => {
             const b = el("button", { type: "button" }, label, note ? el("small", { textContent: note }) : null);
@@ -248,7 +267,7 @@
 
       function renderMonth() {
         const isTf = mode === "timeframe";
-        const m = isTf ? data.timeframes.find((x) => x.since === current) : data.months.find((x) => x.month === current);
+        const m = isTf ? tfBlock() : data.months.find((x) => x.month === current);
         $("#month-title").textContent = isTf
           ? `${short(m.since)} – ${short(m.until)}`
           : monthName(m.month) + (m.in_progress ? " · in progress" : "");
@@ -311,10 +330,11 @@
         row.setAttribute("aria-expanded", "true");
         $("#d-title").replaceChildren(el("a", { href: `https://doi.org/${r.doi}`, target: "_blank", rel: "noopener", textContent: r.title }));
         $("#d-meta").textContent = `${r.first_author} et al. · posted ${r.date} · ${x(r.score)} the reads of a typical preprint of its age (${rate(r.per_day)} vs. ${rate(r.typical_per_day)} reads/day)`;
-        $("#d-chart").replaceChildren(historyChart(r.history));
+        const history = data.histories[r.doi] ?? [];
+        $("#d-chart").replaceChildren(historyChart(history));
         $("#d-table").replaceChildren(
           el("tr", {}, ...["Month", "Rank", "of", "Reads", "Per day", "Score"].map((t) => el("th", { textContent: t }))),
-          ...r.history.map((p) => el("tr", {}, ...[monthName(p.month, "short"), `#${p.rank}`, fmt.format(p.of), fmt.format(p.reads), rate(p.per_day), x(p.score)].map((t) => el("td", { textContent: t })))),
+          ...history.map((p) => el("tr", {}, ...[monthName(p.month, "short"), `#${p.rank}`, fmt.format(p.of), fmt.format(p.reads), rate(p.per_day), x(p.score)].map((t) => el("td", { textContent: t })))),
         );
         const d = $("#detail");
         d.classList.add("open");
@@ -333,9 +353,9 @@
 
       function render(value) {
         data = value;
-        const keys = mode === "timeframe" ? data.timeframes.map((t) => t.since) : data.months.map((m) => m.month);
-        if (!keys.includes(current)) current = mode === "month" ? lastFull() : keys[0];
-        if (mode === "month") year = current.slice(0, 4);
+        if (!data.months.some((m) => m.month === current)) current = lastFull();
+        year = current.slice(0, 4);
+        if (!tfBlock()) pickTf();
         shell.querySelectorAll('[data-bind="category"]').forEach((n) => (n.textContent = data.category));
         const binds = { min_days: data.min_days, peer_days: data.peer_days, start: data.start, end: data.end, updated: data.updated, coverage: `${fmt.format(data.n_with_metrics)} / ${fmt.format(data.n_papers)}` };
         for (const [k, v] of Object.entries(binds)) shell.querySelectorAll(`[data-bind="${k}"]`).forEach((n) => (n.textContent = v));
