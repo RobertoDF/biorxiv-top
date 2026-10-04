@@ -285,10 +285,8 @@
           ? `${short(m.since)} – ${short(m.until)}`
           : monthName(m.month) + (m.in_progress ? " · in progress" : "");
         const shown = m.results.length;
-        const share = m.n_ranked ? (100 * shown) / m.n_ranked : 0;
-        const pct = (v) => (v >= 10 ? Math.round(v) : v.toFixed(1)).toString();
         $("#month-sub").textContent =
-          `Top ${shown} of ${fmt.format(m.n_ranked)} = top ${pct(share)}% (≥ ${(100 - share).toFixed(1)}th percentile) · ` +
+          `Top ${shown} of ${fmt.format(m.n_ranked)} ranked · ` +
           `score = reads ÷ reads of a typical preprint of the same age · ${fmt.format(data.n_papers)} preprints tracked since ${short(data.start)}`;
         renderKpis(m);
         const max = Math.max(0.01, ...m.results.map((r) => r.score));
