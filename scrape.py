@@ -36,21 +36,27 @@ def fetch(url, retries=4):
 
 
 def list_papers(start, end, category):
-    papers, cursor = {}, 0
-    while True:
-        page = fetch(f"https://api.biorxiv.org/details/biorxiv/{start}/{end}/{cursor}?category={category}", retries=8)
-        if page is None:
-            sys.exit("bioRxiv API unreachable")
-        d = json.loads(page or "{}")
-        col = d.get("collection", [])
-        if not col:
-            break
+    """All v1 papers in the window, or None if the API keeps returning errors or empty pages."""
+    papers, cursor, total = {}, 0, None
+    while total is None or cursor < total:
+        url = f"https://api.biorxiv.org/details/biorxiv/{start}/{end}/{cursor}?category={category}"
+        for attempt in range(5):
+            try:
+                d = json.loads(fetch(url, retries=8) or "{}")
+            except ValueError:
+                d = {}
+            col = d.get("collection", [])
+            if col:
+                break
+            log(f"empty API page at cursor {cursor}, retrying ({attempt + 1}/5)")
+            time.sleep(30)
+        else:
+            return None
+        total = int(d["messages"][0]["total"])
         for p in col:
             if p["version"] == "1":
                 papers[p["doi"]] = p
         cursor += len(col)
-        if cursor >= int(d["messages"][0]["total"]):
-            break
     return papers
 
 
@@ -110,16 +116,24 @@ def main():
         return merge(a.merge, a.out)
 
     today = dt.date.today()
-    if a.no_list:
+    first = month_keys(today, a.months)
+    listed = None
+    if not a.no_list:
+        listed = list_papers(first, today, a.category)
+        if listed:
+            log(f"{len(listed)} papers posted {first} -> {today}")
+        elif not os.path.exists(a.out):
+            sys.exit("bioRxiv API returned no papers")
+        else:
+            # transient API outage: keep the previous list rather than failing the whole run
+            log("bioRxiv API returned no papers; keeping the previous paper list")
+            if a.list_only:
+                return
+    if not listed:
         d = json.load(open(a.out))
         papers = d["papers"]
         meta = {k: d[k] for k in ("category", "start", "end")}
     else:
-        first = month_keys(today, a.months)
-        listed = list_papers(first, today, a.category)
-        log(f"{len(listed)} papers posted {first} -> {today}")
-        if not listed:
-            sys.exit("no papers fetched")
 
         # incremental: keep usage from earlier runs, only for papers still in the window
         cache = {}
