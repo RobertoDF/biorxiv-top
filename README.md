@@ -23,6 +23,8 @@ Only new (v1) preprints posted in the last 6 months are tracked, so older papers
 
 **Incremental scraping.** bioRxiv throttles GitHub's runners heavily (HTTP 429), so one run can't refresh every paper. `data/usage.json` is kept on the `data` branch. Each run restores it, fetches papers never fetched or with data older than 6 days (`--refresh-days`), and stops after 150 minutes or 5 consecutive throttled requests (honoring Cloudflare's `retry-after`). It then saves the file back. Papers it can't reach keep their last known usage. The site footer shows how many preprints have usage data.
 
+**Runs.** Scheduled runs (every 3 h) and manual runs re-scrape bioRxiv. Pushes to `main` only rebuild the site from the saved data, so code changes go live in a few minutes. A manual run with `refresh` off does the same.
+
 ## Run locally
 
 ```bash
