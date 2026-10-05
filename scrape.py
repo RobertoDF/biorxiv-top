@@ -61,30 +61,24 @@ def list_papers(start, end, category):
 
 
 def usage(doi):
-    """(usage, posted) or False if the fetch failed.
-
-    usage is {"YYYY-MM": [full, pdf]} or None if the page has no usage table; posted is the
-    "Posted <date>" shown on the page (YYYY-MM-DD) or "" if absent. The API date can lag it by days.
-    """
+    """{"YYYY-MM": [full, pdf]}, None if the page has no usage table, or False if the fetch failed."""
     # The plain URL serves a stale cached page; a unique query string returns live counts.
     h = fetch(f"https://www.biorxiv.org/content/{doi}v1.article-metrics?_={int(time.time())}", retries=2)
     if h is None:
         return False
-    m = re.search(r"Posted(?:&nbsp;|\s)+([A-Z][a-z]+ \d{1,2}, \d{4})", h)
-    posted = dt.datetime.strptime(m.group(1), "%B %d, %Y").strftime("%Y-%m-%d") if m else ""
     i = h.find("Article usage")
     if i < 0:
-        return None, posted
+        return None
     s = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", h[i:i + 6000]))
     rows = re.findall(r"([A-Z][a-z]{2}) (\d{4}) ([\d,]+) ([\d,-]+) ([\d,]+)", s)
     if not rows:
-        return None, posted
+        return None
     num = lambda x: int(x.replace(",", "")) if x.strip("-") else 0
     # {"2026-08": [full, pdf]}
     return {
         dt.datetime.strptime(f"{mon} {yr}", "%b %Y").strftime("%Y-%m"): [num(full), num(pdf)]
         for mon, yr, _abstract, full, pdf in rows
-    }, posted
+    }
 
 
 def month_keys(today, n):
@@ -149,8 +143,7 @@ def main():
         for doi, p in listed.items():
             old = cache.get(doi, {})
             papers.append({
-                "doi": doi, "title": p["title"], "first_author": p["authors"].split(";")[0].strip(), "date": old.get("posted") or p["date"],
-                "posted": old.get("posted"),
+                "doi": doi, "title": p["title"], "first_author": p["authors"].split(";")[0].strip(), "date": p["date"],
                 "usage": old.get("usage"), "fetched": old.get("fetched"),  # usage: {"YYYY-MM": [full, pdf]} or None
             })
         meta = {"category": a.category, "start": str(first), "end": str(today)}
@@ -159,8 +152,7 @@ def main():
             return log(f"wrote {a.out}: {len(papers)} papers listed")
 
     stale = str(today - dt.timedelta(days=a.refresh_days))
-    # papers without a page "posted" date predate that field and are re-fetched once
-    todo = [p for p in papers if not p["fetched"] or p["fetched"] <= stale or p.get("posted") is None]
+    todo = [p for p in papers if not p["fetched"] or p["fetched"] <= stale]
     todo.sort(key=lambda p: (p["fetched"] or "", p["date"]))  # never fetched first, then oldest data
     log(f"{len(papers) - len(todo)} up to date, {len(todo)} to fetch")
     i, n_shards = map(int, a.shard.split("/"))
@@ -184,10 +176,7 @@ def main():
         else:
             failures = 0
             done += 1
-            p["usage"], p["posted"] = u
-            p["fetched"] = str(today)
-            if p["posted"]:
-                p["date"] = p["posted"]
+            p["usage"], p["fetched"] = u, str(today)
         if n % 100 == 0:
             log(f"{n}/{len(todo)} tried, {done} fetched")
             save(a.out, {**meta, "updated": now()}, papers)
